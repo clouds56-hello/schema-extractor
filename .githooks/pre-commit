@@ -1,0 +1,15 @@
+#!/bin/sh
+# Run typecheck and lint before allowing a commit.
+# Bypass with `git commit --no-verify` (discouraged).
+set -e
+
+if ! command -v bun >/dev/null 2>&1; then
+  echo "pre-commit: bun not found, skipping checks" >&2
+  exit 0
+fi
+
+echo "pre-commit: typecheck"
+bun run typecheck
+
+echo "pre-commit: lint"
+bun run lint
