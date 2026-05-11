@@ -286,12 +286,24 @@ export type Response_McpServersStarting_898eb3e4 = {
   kind: "mcpServersStarting";
 };
 
+/** 0.v -> Variant.requests[].response[] -> progressTaskSerialized.content -> Variant */
+export type Content_Variant_d597fb5c = {
+  isTrusted: boolean;
+  supportAlertSyntax: boolean;
+  supportHtml: boolean;
+  supportThemeIcons: boolean;
+  value: string;
+};
+
+/** 0.v -> Variant.requests[].response[] -> progressTaskSerialized.content -> Variant */
+export type Content_Variant_d597fb5c_2 = {
+  uris: Record<string, unknown>;
+  value: string;
+};
+
 /** 0.v -> Variant.requests[].response[] -> progressTaskSerialized */
 export type Response_ProgressTaskSerialized_132e6db2 = {
-  content: {
-    uris: Record<string, unknown>;
-    value: string;
-  };
+  content: Content_Variant_d597fb5c | Content_Variant_d597fb5c_2;
   kind: "progressTaskSerialized";
   progress: never[];
 };
@@ -335,15 +347,6 @@ export type InvocationMessage_Variant_ce876462 = {
   value: string;
 };
 
-/** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.invocationMessage -> Variant */
-export type InvocationMessage_Variant_ce876462_2 = {
-  isTrusted: boolean;
-  supportAlertSyntax: boolean;
-  supportHtml: boolean;
-  supportThemeIcons: boolean;
-  value: string;
-};
-
 /** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.isConfirmed -> 1 */
 export type IsConfirmed_1_c95cb60c = {
   type: 1;
@@ -382,12 +385,6 @@ export type ResultDetails_Variant_6a3ac424 = {
 };
 
 /** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.resultDetails -> Variant[] -> Variant */
-export type ResultDetails_Type_5cbf55b8 = {
-  range: Range_Type_c56f3a3b;
-  uri: $mid_1_9b4a5f71;
-};
-
-/** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.resultDetails -> Variant[] -> Variant */
 export type ResultDetails_Variant_db7cfc41 = {
   range: Range_Type_c56f3a3b;
   uri: $mid_1_9b4a5f71;
@@ -407,6 +404,12 @@ export type ResultDetails_Variant_db7cfc41_3 = {
 
 /** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.resultDetails -> Variant[] -> Variant */
 export type ResultDetails_Variant_db7cfc41_4 = {
+  range: Range_Type_c56f3a3b;
+  uri: $mid_1_9b4a5f71;
+};
+
+/** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.resultDetails -> Variant[] -> Variant */
+export type ResultDetails_Variant_db7cfc41_5 = {
   range: Range_Type_c56f3a3b;
   uri: $mid_1_9b4a5f71;
 };
@@ -505,18 +508,18 @@ export type ToolSpecificData_TodoList_992240ca = {
 /** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized */
 export type Response_ToolInvocationSerialized_8dd43a27 = {
   generatedTitle?: string;
-  invocationMessage: InvocationMessage_Variant_ce876462 | string | InvocationMessage_Variant_ce876462_2 | Path;
+  invocationMessage: InvocationMessage_Variant_ce876462 | string | Content_Variant_d597fb5c | Path;
   isAttachedToThinking?: boolean;
   isComplete: boolean;
   isConfirmed?: IsConfirmed_1_c95cb60c | IsConfirmed_4_101ec371 | IsConfirmed_0_6b61abae | IsConfirmed_5_9efe7d77 | IsConfirmed_3_b8417d0c;
   kind: "toolInvocationSerialized";
   originMessage?: string;
-  pastTenseMessage?: InvocationMessage_Variant_ce876462 | InvocationMessage_Variant_ce876462_2 | string | Path;
+  pastTenseMessage?: InvocationMessage_Variant_ce876462 | Content_Variant_d597fb5c | string | Path;
   presentation?: string;
-  resultDetails?: ResultDetails_Variant_6a3ac424 | ResultDetails_Type_5cbf55b8[] | {
+  resultDetails?: ResultDetails_Variant_6a3ac424 | Array<ResultDetails_Variant_db7cfc41 | $mid_1_9b4a5f71> | {
     range: Range_Type_c56f3a3b;
     uri: $mid_1_9b4a5f71;
-  }[] | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41> | never[] | $mid_1_9b4a5f71[] | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41_2> | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41_3> | Array<ResultDetails_Variant_db7cfc41_4 | $mid_1_9b4a5f71>;
+  }[] | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41_2> | never[] | $mid_1_9b4a5f71[] | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41_3> | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41_4> | Array<ResultDetails_Variant_db7cfc41_5 | $mid_1_9b4a5f71>;
   source: Source_Mcp_72c5f656 | Source_Internal_44ce46f1;
   subAgentInvocationId?: string;
   toolCallId: string;
@@ -579,8 +582,30 @@ export type $mid_21_db627c2b = {
   value: string;
 };
 
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 2.references[] -> Variant */
+export type References_Type_d093f04f = {
+  anchor: $mid_1_9b4a5f71;
+  options: {
+    isFromTool: boolean;
+  };
+};
+
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 2 */
 export type Children_2_d0a357ce = {
+  lineBreakBefore: boolean;
+  priority: number;
+  references?: References_Type_d093f04f[];
+  text: string;
+  type: 2;
+};
+
+/**
+ * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 2
+ * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 2
+ * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 2
+ * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 2
+ */
+export type Children_2_1f0854df = {
   lineBreakBefore: boolean;
   priority: number;
   references?: {
@@ -593,14 +618,170 @@ export type Children_2_d0a357ce = {
   type: 2;
 };
 
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1 */
-export type Children_1_656bf662 = {
-  children: Array<Children_1_656bf662 | Children_2_d0a357ce>;
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant */
+export type Props_Variant_b69781ba_2 = {
+  passPriority?: boolean;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.references[].anchor -> Variant.range[] -> Variant */
+export type Range_Type_ef06e167 = {
+  character: number;
+  line: number;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.references[].anchor -> Variant */
+export type Anchor_Type_5cbf55b8 = {
+  range: Range_Type_ef06e167[];
+  uri: $mid_1_9b4a5f71;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1 */
+export type Children_1_51b7c00c = {
+  children: Array<Children_2_1f0854df | Children_1_51b7c00c>;
   ctor: number;
   ctorName: string;
-  props: Record<string, unknown>;
-  references: never[];
+  flags?: number;
+  keepWithId?: number;
+  props: Props_Variant_1c560589 | Props_Variant_b69781ba_2;
+  references: {
+    anchor: Anchor_Type_5cbf55b8;
+    options: {
+      isFromTool: boolean;
+    };
+  }[];
   type: 1;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant */
+export type Props_Variant_d1934617_2 = {
+  passPriority: boolean;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1 */
+export type Children_1_25125fb0 = {
+  children: Array<Children_2_1f0854df | Children_1_51b7c00c>;
+  ctor: number;
+  ctorName: string;
+  flags?: number;
+  keepWithId?: number;
+  props: Props_Variant_1c560589 | Props_Variant_d1934617_2;
+  references: {
+    anchor: {
+      range: {
+        character: number;
+        line: number;
+      }[];
+      uri: $mid_1_9b4a5f71;
+    };
+    options: {
+      isFromTool: boolean;
+    };
+  }[];
+  type: 1;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant */
+export type Props_Variant_cdc3eb7f_2 = {
+  passPriority: boolean;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1 */
+export type Children_1_567e24d6 = {
+  children: Array<Children_2_1f0854df | Children_1_25125fb0>;
+  ctor: number;
+  ctorName: string;
+  flags?: number;
+  keepWithId?: number;
+  props: Props_Variant_1c560589 | Props_Variant_cdc3eb7f_2;
+  references: {
+    anchor: {
+      range: {
+        character: number;
+        line: number;
+      }[];
+      uri: $mid_1_9b4a5f71;
+    };
+    options: {
+      isFromTool: boolean;
+    };
+  }[];
+  type: 1;
+};
+
+/**
+ * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.props -> Variant
+ * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.props -> Variant
+ * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant
+ * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant
+ * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant
+ */
+export type Props_Variant_1c560589 = {
+  flexGrow?: number;
+  priority?: number;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.props -> Variant */
+export type Props_Variant_1c560589_2 = {
+  passPriority: boolean;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1 */
+export type Children_1_69eef251 = {
+  children: Array<Children_2_1f0854df | Children_1_567e24d6>;
+  ctor: number;
+  ctorName: string;
+  flags?: number;
+  keepWithId?: number;
+  props: Props_Variant_1c560589 | Props_Variant_1c560589_2;
+  references: {
+    anchor: {
+      range: {
+        character: number;
+        line: number;
+      }[];
+      uri: $mid_1_9b4a5f71;
+    };
+    options: {
+      isFromTool: boolean;
+    };
+  }[];
+  type: 1;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.props -> Variant */
+export type Props_Variant_39a77ff4_2 = {
+  passPriority?: boolean;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1 */
+export type Children_1_656bf662 = {
+  children: Array<Children_2_d0a357ce | Children_1_69eef251>;
+  ctor: number;
+  ctorName: string;
+  flags?: number;
+  keepWithId?: number;
+  props: Props_Variant_1c560589 | Props_Variant_39a77ff4_2;
+  references: {
+    anchor: {
+      range: {
+        character: number;
+        line: number;
+      }[];
+      uri: $mid_1_9b4a5f71;
+    };
+    options: {
+      isFromTool: boolean;
+    };
+  }[];
+  type: 1;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 2 */
+export type Children_2_beff35a3 = {
+  lineBreakBefore: boolean;
+  priority: number;
+  text: string;
+  type: 2;
 };
 
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23 */
@@ -608,7 +789,7 @@ export type $mid_23_16b15f28 = {
   $mid: 23;
   value: {
     node: {
-      children: Array<Children_1_656bf662 | Children_2_d0a357ce>;
+      children: Array<Children_1_656bf662 | Children_2_beff35a3>;
       ctor: number;
       ctorName: string;
       props: Record<string, unknown>;
@@ -1130,7 +1311,7 @@ export type Requests_Variant_af50ec9b = {
     value: number;
   };
   requestId: string;
-  response: Array<Response_McpServersStarting_898eb3e4 | Response_ProgressTaskSerialized_132e6db2 | Response_Thinking_b518728e | Response_Variant_780d654e | Response_InlineReference_732e3fa8 | Response_ToolInvocationSerialized_8dd43a27 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5 | Response_TextEditGroup_303ba707 | Response_QuestionCarousel_0f3e4276 | Response_WorkspaceEdit_adc32944 | Response_ElicitationSerialized_39ff6b15 | InvocationMessage_Variant_ce876462_2>;
+  response: Array<Response_McpServersStarting_898eb3e4 | Response_ProgressTaskSerialized_132e6db2 | Response_Thinking_b518728e | Response_Variant_780d654e | Response_InlineReference_732e3fa8 | Response_ToolInvocationSerialized_8dd43a27 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5 | Response_TextEditGroup_303ba707 | Response_QuestionCarousel_0f3e4276 | Response_WorkspaceEdit_adc32944 | Response_ElicitationSerialized_39ff6b15 | Content_Variant_d597fb5c>;
   responseId: string;
   responseMarkdownInfo?: {
     suggestionId: string;

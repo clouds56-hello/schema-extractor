@@ -45,6 +45,16 @@ export function combineInto(
           if (existing.schema.k === "prim" && p.schema.k === "prim") {
             const merged = merge(existing.schema, p.schema)
             if (merged.k === "prim" || merged.k === "union") existing.schema = merged
+          } else if (existing.schema !== p.schema) {
+            // Non-prim props that differ structurally: cycle-safe deep-merge so
+            // we don't silently drop the incoming shape (e.g. a union variant
+            // of an object-typed field). Without this, shallow consolidation
+            // of two tagged objects sharing a key but with divergent nested
+            // shapes would lose one shape entirely. Cycle-safe variant
+            // prevents stack overflows when auto-recursive has produced
+            // self-referential IR.
+            const merged = mergeDeepSafe(existing.schema, p.schema)
+            if (merged) existing.schema = merged
           }
         } else {
           canon.props.set(k, { schema: p.schema, present: p.present })

@@ -21,14 +21,7 @@ import { expandGlobs } from "@/input/glob"
 // Targets known to fail strict check today.
 //   codex: no stateful adapter (codex-rollout is a stub), so any natural
 //     drift between sessions trips the strict check.
-//   copilot-chat: vscode-patch.transform now correctly materializes the
-//     replayed state, but ONE record across the corpus exposes a real
-//     schema-fidelity bug — `progressTaskSerialized.content` has two
-//     distinct shapes ({value, uris} vs MarkdownString-shaped) and the
-//     merge pipeline collapses to the first only. Fixing requires either
-//     better union preservation in merge/passes or schema regeneration
-//     against a wider corpus. Tracked as future work.
-const KNOWN_DRIFT = new Set(["codex", "copilot-chat"])
+const KNOWN_DRIFT = new Set(["codex"])
 
 const manifestPath = findManifest(resolve(__dirname, "..", ".."))
 
