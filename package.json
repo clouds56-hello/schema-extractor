@@ -19,7 +19,7 @@
     "cli": "bun bin/schema-extractor.ts",
     "test": "bun test",
     "test:update": "UPDATE_GOLDEN=1 bun test",
-    "regen:examples": "bun scripts/regen-examples.ts",
+    "regen:examples": "bun bin/schema-extractor.ts gen",
     "typecheck": "bunx tsc --noEmit",
     "format": "biome format --write .",
     "lint": "biome lint .",

@@ -30,7 +30,26 @@ Commands:
   simplify   Re-run the simplification pipeline on an existing .d.ts
 ```
 
-`gen` reads JSONL from files (globs + `~` supported, `.gz` auto-decompressed) or stdin and writes a `.d.ts` to stdout (or `--out PATH`). Run any subcommand with `--help` for its options.
+`gen` has three modes:
+
+- **manifest** (no args): reads `schema-extractor.json` (walked up from CWD; override with `--config <path>`) and builds every declared target into its `output` path. Use this for committed regeneration.
+- **stdin** (`gen -`): reads JSONL from stdin, writes `.d.ts` to stdout. Useful for one-offs and pipelines.
+- **explicit files** (`gen file.jsonl ...`): reads from given globs (`~` supported, `.gz` auto-decompressed) and writes to stdout (or `--out PATH`).
+
+Run any subcommand with `--help` for its options.
+
+### Manifest (`schema-extractor.json`)
+
+```json
+{
+  "targets": [
+    { "name": "codex", "input": "~/.codex/sessions/**/*.jsonl", "output": "examples/codex.d.ts",
+      "options": { "rootName": "CodexRollout" } }
+  ]
+}
+```
+
+CLI flags override per-target `options` which override built-in defaults.
 
 ## API
 
@@ -54,8 +73,8 @@ Add a new regression case by dropping `tests/golden/cases/<name>/input.jsonl` (a
 
 ## Examples
 
-Pre-generated schemas live in [`examples/`](./examples). Rebuild with:
+Pre-generated schemas live in [`examples/`](./examples). Rebuild via the manifest at the repo root:
 
 ```
-bun run regen:examples
+bun run regen:examples   # alias for `bun cli gen`
 ```

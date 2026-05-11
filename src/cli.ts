@@ -7,16 +7,19 @@ import {
   formatReport,
   simplifyDts,
 } from "./index"
+import { findManifest, loadManifest, type Manifest, resolveTargetPaths, type Target } from "./manifest"
 
 interface GenArgs {
   out: string | null
-  name: string
+  name: string | null
   tag: string | null
   noAdapters: boolean
   hint: Array<readonly [string, string]>
   recordHint: string[]
   multiTagHint: string[]
   files: string[]
+  configPath: string | null
+  stdin: boolean
 }
 
 function printRootHelp(): void {
@@ -35,14 +38,19 @@ Use \`schema-extractor <command> --help\` for command-specific options.
 
 function printGenHelp(): void {
   process.stdout.write(
-    `Usage: schema-extractor gen [options] [files...]
+    `Usage: schema-extractor gen [options] [files... | -]
 
-Reads JSONL from files (globs + ~ supported, .gz auto-decompressed) or stdin
-and prints a TypeScript .d.ts to stdout (or --out <path>).
+Modes:
+  no args              Read schema-extractor.json (walked up from CWD) and
+                       build every target into its declared output path.
+  -                    Read JSONL from stdin and print to stdout.
+  files...             Read explicit files/globs (~ + ** supported, .gz ok)
+                       and print to stdout (or --out <path>).
 
 Options:
-  --out <path>          Write to file instead of stdout
-  --name <Root>         Root type name (default: Root)
+  --config <path>       Use a specific manifest (overrides walk-up discovery)
+  --out <path>          Write to file instead of stdout (single-target modes)
+  --name <Root>         Root type name (default: Root, or per-target in manifest)
   --tag <key>           Extra discriminator key
   --no-adapters         Disable file-shape adapters (vscode-patch, ...)
   --hint <Scope:Name>   Add a dedup hint (repeatable). Format: "ScopePrefix:NamePrefix"
@@ -90,18 +98,22 @@ Options:
 function parseGenArgs(argv: readonly string[]): GenArgs {
   const a: GenArgs = {
     out: null,
-    name: "Root",
+    name: null,
     tag: null,
     noAdapters: false,
     hint: [],
     recordHint: [],
     multiTagHint: [],
     files: [],
+    configPath: null,
+    stdin: false,
   }
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i]!
-    if (x === "--out") a.out = argv[++i] ?? null
-    else if (x === "--name") a.name = argv[++i] ?? "Root"
+    if (x === "-") a.stdin = true
+    else if (x === "--config") a.configPath = argv[++i] ?? null
+    else if (x === "--out") a.out = argv[++i] ?? null
+    else if (x === "--name") a.name = argv[++i] ?? null
     else if (x === "--tag") a.tag = argv[++i] ?? null
     else if (x === "--no-adapters") a.noAdapters = true
     else if (x === "--hint") {
@@ -125,19 +137,59 @@ function parseGenArgs(argv: readonly string[]): GenArgs {
   return a
 }
 
+/** Build ExtractorOptions by layering: defaults < manifest target < CLI flags. */
+function mergeOptions(targetOpts: ExtractorOptions | undefined, args: GenArgs): ExtractorOptions {
+  const out: ExtractorOptions = { ...(targetOpts ?? {}) }
+  if (args.name !== null) out.rootName = args.name
+  if (args.tag !== null) out.userTagKey = args.tag
+  if (args.noAdapters) out.adapters = []
+  else if (out.adapters === undefined) out.adapters = DEFAULT_ADAPTERS
+  if (args.hint.length) out.dedupHints = args.hint
+  if (args.recordHint.length) out.recordHints = args.recordHint
+  if (args.multiTagHint.length) out.multiTagHints = args.multiTagHint
+  return out
+}
+
+async function buildTarget(target: Target, manifestPath: string, args: GenArgs): Promise<void> {
+  const { input, output } = resolveTargetPaths(target, manifestPath)
+  const opts = mergeOptions(target.options, args)
+  const ts = await extractSchemaFromFiles(input, opts)
+  await Bun.write(output, ts)
+  console.error(`[${target.name}] wrote ${output}`)
+}
+
+async function buildFromManifest(args: GenArgs): Promise<void> {
+  const manifestPath = args.configPath ?? findManifest()
+  if (!manifestPath) {
+    console.error(
+      "gen: no input. Provide files, pipe stdin via `gen -`, or create schema-extractor.json.",
+    )
+    process.exit(2)
+  }
+  const manifest: Manifest = loadManifest(manifestPath)
+  if (manifest.targets.length === 0) {
+    console.error(`gen: manifest at ${manifestPath} has no targets`)
+    process.exit(2)
+  }
+  for (const t of manifest.targets) {
+    await buildTarget(t, manifestPath, args)
+  }
+}
+
 async function cmdGen(argv: readonly string[]): Promise<void> {
   const args = parseGenArgs(argv)
-  const opts: ExtractorOptions = {
-    rootName: args.name,
-    userTagKey: args.tag,
-    adapters: args.noAdapters ? [] : DEFAULT_ADAPTERS,
+
+  // No positional args and no `-` → manifest-driven build.
+  if (!args.stdin && args.files.length === 0) {
+    await buildFromManifest(args)
+    return
   }
-  if (args.hint.length) opts.dedupHints = args.hint
-  if (args.recordHint.length) opts.recordHints = args.recordHint
-  if (args.multiTagHint.length) opts.multiTagHints = args.multiTagHint
+
+  const opts = mergeOptions(undefined, args)
+  if (opts.rootName === undefined) opts.rootName = "Root"
 
   let ts: string
-  if (args.files.length === 0) {
+  if (args.stdin) {
     const { Readable } = await import("node:stream")
     const webStream = Readable.toWeb(process.stdin) as unknown as ReadableStream<Uint8Array>
     ts = await extractSchemaFromStream(webStream, opts, "<stdin>")
