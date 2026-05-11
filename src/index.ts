@@ -114,6 +114,11 @@ export async function extractSchemaFromFiles(
 /**
  * Validate JSONL records against a previously emitted .d.ts schema. Returns a
  * structured report (overall pass/fail, per-type counts, failure samples).
+ *
+ * NOTE: records are validated as parsed from JSONL — no adapter pipeline is
+ * applied. For inputs whose committed schema was produced via a stateful
+ * adapter (e.g. vscode-patch replays kind:0/1/2 records into a different
+ * shape), raw-record validation will not match. See `tests/integration/check.test.ts`.
  */
 export async function checkJsonlAgainstDts(
   patterns: readonly string[],

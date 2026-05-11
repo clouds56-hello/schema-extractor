@@ -63,18 +63,26 @@ Options:
 
 function printCheckHelp(): void {
   process.stdout.write(
-    `Usage: schema-extractor check --schema <path> [options] [files...]
+    `Usage:
+  schema-extractor check                                  (manifest mode)
+  schema-extractor check --schema <path> [opts] files...  (explicit mode)
 
-Validate each JSONL record against a previously generated .d.ts schema.
-Reports overall pass/fail plus per-type instance counts.
+Modes:
+  no args              Read schema-extractor.json (walked up from CWD; or
+                       --config <path>) and check every target's input
+                       against its committed output. Exits nonzero if any
+                       target has at least one validation failure or if any
+                       target's input glob matches no files.
+  explicit             Validate JSONL files against a single .d.ts schema.
 
 Options:
-  --schema <path>       Path to .d.ts schema (required)
-  --root <Name>         Which exported type to validate against (default: first)
+  --config <path>       Manifest path (overrides walk-up discovery)
+  --schema <path>       Path to .d.ts schema (required for explicit mode)
+  --root <Name>         Which exported type to validate against (default: last)
   --detail              Also print per-field instance counts
   -h, --help            Show this help
 
-Exit codes: 0 = all records valid, 1 = at least one validation failure.
+Exit codes: 0 = all checks pass, 1 = at least one validation failure.
 `,
   )
 }
@@ -209,12 +217,14 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
   let schemaPath: string | null = null
   let rootName: string | null = null
   let detail = false
+  let configPath: string | null = null
   const files: string[] = []
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i]!
     if (x === "--schema") schemaPath = argv[++i] ?? null
     else if (x === "--root") rootName = argv[++i] ?? null
     else if (x === "--detail") detail = true
+    else if (x === "--config") configPath = argv[++i] ?? null
     else if (x === "-h" || x === "--help") {
       printCheckHelp()
       return
@@ -223,8 +233,40 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
       process.exit(2)
     } else files.push(x)
   }
+
+  // Manifest mode: no --schema and no positional files.
+  if (!schemaPath && files.length === 0) {
+    const mfPath = configPath ?? findManifest()
+    if (!mfPath) {
+      console.error(
+        "check: no input. Provide --schema + files, or create schema-extractor.json.",
+      )
+      process.exit(2)
+    }
+    const manifest = loadManifest(mfPath)
+    if (manifest.targets.length === 0) {
+      console.error(`check: manifest at ${mfPath} has no targets`)
+      process.exit(2)
+    }
+    let anyFail = false
+    for (const t of manifest.targets) {
+      const { input, output } = resolveTargetPaths(t, mfPath)
+      try {
+        const report = await checkJsonlAgainstDts(input, output, t.options?.rootName)
+        const status = report.pass ? "OK" : "FAIL"
+        process.stdout.write(`[${t.name}] ${status} ${report.total - report.failed}/${report.total}\n`)
+        if (detail || !report.pass) process.stdout.write(formatReport(report, detail))
+        if (!report.pass) anyFail = true
+      } catch (e) {
+        console.error(`[${t.name}] error: ${(e as Error).message}`)
+        anyFail = true
+      }
+    }
+    process.exit(anyFail ? 1 : 0)
+  }
+
   if (!schemaPath) {
-    console.error("check: --schema <path> is required")
+    console.error("check: --schema <path> is required when files are given")
     process.exit(2)
   }
   if (files.length === 0) {

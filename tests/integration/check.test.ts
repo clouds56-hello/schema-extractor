@@ -18,7 +18,12 @@ import { checkJsonlAgainstDts } from "@/index"
 import { findManifest, loadManifest, resolveTargetPaths } from "@/manifest"
 import { expandGlobs } from "@/input/glob"
 
-// Targets known to fail strict check today. See plan v4 / TODO.
+// Targets known to fail strict check today. The vscode-patch adapter consumes
+// kind:0/1/2 records and synthesizes a Schema directly without materializing
+// post-replay records, so `check` (which validates raw JSONL) cannot currently
+// see what the schema actually describes. Unblocking these requires extending
+// the Adapter interface with a `transform(records) -> records` method, which
+// is out of scope for plan v5.
 const KNOWN_DRIFT = new Set(["codex", "copilot-chat"])
 
 const manifestPath = findManifest(resolve(__dirname, "..", ".."))
