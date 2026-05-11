@@ -1,3 +1,4 @@
+import { pickTagLiteral } from "@/ir/tags"
 import type { Schema } from "@/ir/types"
 
 export interface FieldStat {
@@ -45,6 +46,58 @@ function describeValue(v: unknown): string {
   if (v === null) return "null"
   if (Array.isArray(v)) return "array"
   return typeof v
+}
+
+/**
+ * For an object value, return a count of properties whose names also appear
+ * in the schema's prop list. Used to score how "close" a failed union variant
+ * came to matching, so the caller can report the best attempt instead of the
+ * first.
+ */
+function scoreObjectMatch(value: unknown, schema: Schema): number {
+  if (schema.k !== "object" || typeof value !== "object" || value === null || Array.isArray(value)) {
+    return 0
+  }
+  const obj = value as Record<string, unknown>
+  let n = 0
+  for (const k of Object.keys(obj)) if (schema.props.has(k)) n++
+  return n
+}
+
+/**
+ * If `value` is an object and `variants` are objects with discriminator
+ * literals, return the variant whose tag matches `value[key]`. Otherwise
+ * null. Tries TAG_CANDIDATES in order (same priority as merge).
+ */
+function pickTagDispatch(
+  value: unknown,
+  variants: readonly Schema[],
+): { variant: Schema; key: string; value: string | number } | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null
+  const obj = value as Record<string, unknown>
+  // Build (key, value) -> variant index from variants that have tag literals.
+  const buckets = new Map<string, Map<string | number, Schema>>()
+  for (const v of variants) {
+    if (v.k !== "object") continue
+    const tag = pickTagLiteral(v)
+    if (!tag) continue
+    let bk = buckets.get(tag.key)
+    if (!bk) {
+      bk = new Map()
+      buckets.set(tag.key, bk)
+    }
+    // If two variants share the same (key, value), no fast-path is safe.
+    if (bk.has(tag.value)) bk.set(tag.value, { k: "any" } as Schema)
+    else bk.set(tag.value, v)
+  }
+  if (buckets.size === 0) return null
+  for (const [key, bk] of buckets) {
+    const tv = obj[key]
+    if (typeof tv !== "string" && typeof tv !== "number") continue
+    const variant = bk.get(tv)
+    if (variant && variant.k === "object") return { variant, key, value: tv }
+  }
+  return null
 }
 
 /** Check a single value against a schema. Returns null on success, error string on failure. */
@@ -104,20 +157,32 @@ function checkValue(value: unknown, schema: Schema, report: CheckReport, path: s
       return null
     }
     case "union": {
-      // Try each variant; succeed on first match. Snapshot stats so we don't pollute
-      // counts with attempted-and-failed variants.
+      // Fast path: if variants are tag-discriminated objects and `value` carries
+      // a matching tag literal, validate against that variant directly so the
+      // error message points at the right place.
+      const dispatch = pickTagDispatch(value, schema.variants)
+      if (dispatch) {
+        const err = checkValue(value, dispatch.variant, report, path)
+        if (err === null) return null
+        return `[${dispatch.key}=${JSON.stringify(dispatch.value)}] ${err}`
+      }
+      // Try each variant; succeed on first match. Snapshot stats so we don't
+      // pollute counts with attempted-and-failed variants. On total failure,
+      // report the highest-scoring attempt's error rather than the first.
       const snapshotTypes = new Map(report.typeStats)
       const snapshotFields = new Map(report.fieldStats)
-      const errors: string[] = []
+      let best: { score: number; err: string } | null = null
       for (const v of schema.variants) {
         const err = checkValue(value, v, report, path)
         if (err === null) return null
-        errors.push(err)
+        const score = scoreObjectMatch(value, v)
+        if (best === null || score > best.score) best = { score, err }
         // restore stats for next attempt
         report.typeStats = new Map(snapshotTypes)
         report.fieldStats = new Map(snapshotFields)
       }
-      return `no union variant matched (${errors.length} tries): ${errors[0]}`
+      const reason = best ? best.err : "no variants"
+      return `no union variant matched (${schema.variants.length} tries): ${reason}`
     }
     case "object": {
       if (typeof value !== "object" || value === null || Array.isArray(value)) {
