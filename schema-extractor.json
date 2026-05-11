@@ -1,0 +1,17 @@
+{
+  "$schema": "./schema-extractor.schema.json",
+  "targets": [
+    {
+      "name": "codex",
+      "input": "~/.codex/sessions/**/*.jsonl",
+      "output": "examples/codex.d.ts",
+      "options": { "rootName": "CodexRollout" }
+    },
+    {
+      "name": "copilot-chat",
+      "input": "~/.local/share/workspaceStorage/*/chatSessions/*.jsonl",
+      "output": "examples/copilot-chat.d.ts",
+      "options": { "rootName": "CopilotChat" }
+    }
+  ]
+}
