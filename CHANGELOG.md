@@ -6,6 +6,12 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Build pipeline (`scripts/build.ts` + `tsconfig.build.json`): bundles each public entrypoint with `Bun.build` (target: `bun`, format: `esm`) into `dist/` with `@/*` aliases resolved at build time, then emits `.d.ts` declarations via `tsc` and rewrites alias paths in declarations via `tsc-alias`. Bin (`dist/bin/schema-extractor.js`) preserves its `#!/usr/bin/env bun` shebang and is marked executable. Triggered by `bun run build` and automatically by `prepublishOnly`.
+- `.github/workflows/release.yml`: publishes the package to npm with `--access public --provenance` when a `v*` tag passes CI. Verifies the tag matches `package.json` version before publishing. Requires repo secret `NPM_TOKEN`.
+- `package.json` now points `main` / `module` / `types` / `exports` / `bin` at `dist/`, drops `src` and `bin` from `files` (replaced by `dist`).
+- CI runs on `v*` tag pushes too so the release workflow has a `workflow_run` trigger to depend on.
+
 ## [0.1.1] - 2026-05-11
 
 ### Added

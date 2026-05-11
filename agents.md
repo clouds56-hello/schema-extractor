@@ -131,7 +131,7 @@ Schema in `schema-extractor.schema.json` (draft-07). Walk-up discovery from CWD 
 ## Conventions
 
 ### Code
-- TS, ESM, Bun-native. No build step.
+- TS, ESM, Bun-native. **Dev runs source directly (no build step).** A build step exists only for publishing: `bun run build` produces `dist/` (bundled with `Bun.build`, declarations emitted by `tsc` + `tsc-alias`); `npm publish` consumes `dist/`. The `.github/workflows/release.yml` workflow publishes on `v*` tag pushes that pass CI.
 - **No semicolons.** Biome enforces `semicolons: "asNeeded"`. Lines that begin with `[ ( \` + - /` get a leading `;` (ASI prefix-semi convention).
 - **Imports**: cross-folder uses the `@/` path alias (resolves to `src/`); same-folder siblings use `./name`. Outside `src/` (bin, scripts, tests) always use `@/`. Never include `.js` or `.ts` in import specifiers.
 - Prefer `interface` for record types, `type` for unions / aliases.
