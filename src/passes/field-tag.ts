@@ -1,7 +1,7 @@
+import type { HoistMeta } from "@/emit/hoist"
 import type { Schema } from "@/ir/types"
 import { mergeGroup } from "@/policy/combine"
 import { INLINE_INLINE_POLICY } from "@/policy/presets"
-import type { HoistMeta } from "@/emit/hoist"
 
 /**
  * Field-scoped tag consolidation. Walks the entire IR (not just collectHoists'

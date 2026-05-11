@@ -1,7 +1,7 @@
-import type { Schema } from "@/ir/types"
-import { hasTagKey, pickTagLiteral } from "@/ir/tags"
 import { collectHoists, type HoistMeta } from "@/emit/hoist"
-import { ROOT_CTX, pascal, sha8 } from "@/emit/name"
+import { pascal, ROOT_CTX, sha8 } from "@/emit/name"
+import { hasTagKey, pickTagLiteral } from "@/ir/tags"
+import type { Schema } from "@/ir/types"
 import { mergeGroup } from "@/policy/combine"
 import { INLINE_SAMEKEYS_POLICY } from "@/policy/presets"
 

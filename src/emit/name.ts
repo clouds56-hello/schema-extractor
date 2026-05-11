@@ -53,11 +53,11 @@ export function descendVariant(p: PathCtx, tagValue: string | number): PathCtx {
 }
 
 export function descendArray(p: PathCtx): PathCtx {
-  return { old: child(p.old, "Item"), pretty: p.pretty + "[]", field: p.field }
+  return { old: child(p.old, "Item"), pretty: `${p.pretty}[]`, field: p.field }
 }
 
 export function descendRecord(p: PathCtx): PathCtx {
-  return { old: child(p.old, "Value"), pretty: p.pretty + "{}", field: p.field }
+  return { old: child(p.old, "Value"), pretty: `${p.pretty}{}`, field: p.field }
 }
 
 export function descendVariantFallback(p: PathCtx): PathCtx {

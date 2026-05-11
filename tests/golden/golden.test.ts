@@ -5,10 +5,10 @@
  * `UPDATE_GOLDEN=1` to (re)write the expected files.
  */
 import { describe, expect, test } from "bun:test"
-import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs"
-import { join, dirname } from "node:path"
-import { extractSchemaFromStream } from "@/index"
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { dirname, join } from "node:path"
 import type { ExtractorOptions } from "@/config"
+import { extractSchemaFromStream } from "@/index"
 
 interface Case {
   name: string

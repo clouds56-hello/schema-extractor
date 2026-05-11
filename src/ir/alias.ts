@@ -27,13 +27,13 @@ export const ALIASES: AliasDef[] = [
   { name: "Uuid", predicate: (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s) },
   { name: "Sha256", predicate: (s) => /^[0-9a-f]{64}$/i.test(s) },
   { name: "Sha1", predicate: (s) => /^[0-9a-f]{40}$/i.test(s) },
-  { name: "Semver", predicate: (s) => /^v?\d+\.\d+\.\d+(-[0-9A-Za-z.\-]+)?(\+[0-9A-Za-z.\-]+)?$/.test(s) },
+  { name: "Semver", predicate: (s) => /^v?\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$/.test(s) },
   { name: "Email", predicate: (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) },
   {
     name: "IsoDate",
     predicate: (s) => /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/.test(s),
   },
-  { name: "Url", predicate: (s) => /^[a-z][a-z0-9+.\-]*:\/\//i.test(s) },
+  { name: "Url", predicate: (s) => /^[a-z][a-z0-9+.-]*:\/\//i.test(s) },
   { name: "Path", predicate: isPathLikeValue },
   { name: "Hex", predicate: (s) => s.length >= 8 && s.length % 2 === 0 && /^[0-9a-f]+$/i.test(s) },
   {

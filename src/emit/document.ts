@@ -1,5 +1,5 @@
-import type { DeclEntry, EmitCtx } from "./render"
 import { ALIASES } from "@/ir/alias"
+import type { DeclEntry, EmitCtx } from "./render"
 
 export function formatDoc(paths: string[]): string {
   if (paths.length === 0) return ""
@@ -21,7 +21,7 @@ export function buildDocument(opts: {
     if (ctx.aliases.has(def.name)) aliasDecls.push(`export type ${def.name} = string;`)
   }
   if (ctx.aliases.has("Blob")) aliasDecls.push("export type Blob = string;")
-  const aliasBlock = aliasDecls.length ? aliasDecls.join("\n") + "\n\n" : ""
+  const aliasBlock = aliasDecls.length ? `${aliasDecls.join("\n")}\n\n` : ""
   const declStrings = decls.map((d) => `${formatDoc(d.doc)}export type ${d.name} = ${d.body};`)
   return (
     header +

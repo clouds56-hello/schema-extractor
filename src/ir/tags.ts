@@ -1,9 +1,9 @@
 // Tag-discriminator helpers — pure inspection of an object IR's properties.
 // These are pulled out of merge.ts so policy/ can use them without creating a cycle.
 
+import { runtime } from "@/runtime"
 import type { Schema } from "./types"
 import { TAG_CANDIDATES } from "./types"
-import { runtime } from "@/runtime"
 
 export function pickTagLiteral(o: Schema & { k: "object" }): { key: string; value: string | number } | null {
   for (const key of TAG_CANDIDATES) {

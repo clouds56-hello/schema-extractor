@@ -1,16 +1,16 @@
-import type { Schema } from "@/ir/types"
 import { ALIASES } from "@/ir/alias"
 import { pickTagLiteral } from "@/ir/tags"
+import type { Schema } from "@/ir/types"
 import {
-  type PathCtx,
-  EMPTY_CTX,
   descendArray,
   descendField,
   descendRecord,
   descendVariant,
   descendVariantFallback,
+  EMPTY_CTX,
   indent,
   isSafeIdent,
+  type PathCtx,
   variantTypeName,
 } from "./name"
 
@@ -129,7 +129,11 @@ export function render(s: Schema, ctx: EmitCtx, p: PathCtx): string {
         }
       }
       const seen = new Set<string>()
-      const uniq = parts.filter((x) => (seen.has(x) ? false : (seen.add(x), true)))
+      const uniq = parts.filter((x) => {
+        if (seen.has(x)) return false
+        seen.add(x)
+        return true
+      })
       return uniq.join(" | ")
     }
     case "object": {

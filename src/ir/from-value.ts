@@ -1,7 +1,7 @@
-import type { Schema } from "./types"
-import { TAG_CANDIDATES } from "./types"
 import { buildAliasMaps } from "./alias"
 import { merge } from "./merge"
+import type { Schema } from "./types"
+import { TAG_CANDIDATES } from "./types"
 
 /** Convert a single JSON value into a fresh Schema IR. */
 export function fromValue(v: unknown, isTagField = false): Schema {

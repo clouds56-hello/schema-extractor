@@ -1,13 +1,13 @@
+import { fromValue } from "@/ir/from-value"
+import { merge } from "@/ir/merge"
 import type { Schema } from "@/ir/types"
 import { NEVER } from "@/ir/types"
-import { merge } from "@/ir/merge"
-import { fromValue } from "@/ir/from-value"
+import { codexRolloutAdapter } from "./codex-rollout"
 import type { Adapter } from "./types"
 import { vscodePatchAdapter } from "./vscode-patch"
-import { codexRolloutAdapter } from "./codex-rollout"
 
-export { vscodePatchAdapter, codexRolloutAdapter }
 export type { Adapter }
+export { codexRolloutAdapter, vscodePatchAdapter }
 
 /** Adapter list, in detection priority order. */
 export const DEFAULT_ADAPTERS: readonly Adapter[] = [vscodePatchAdapter, codexRolloutAdapter]

@@ -1,6 +1,6 @@
+import { compatibleForMerge, pickTagKey, pickTagLiteral } from "@/ir/tags"
 import type { Schema } from "@/ir/types"
 import { TAG_CANDIDATES } from "@/ir/types"
-import { compatibleForMerge, pickTagKey, pickTagLiteral } from "@/ir/tags"
 import { runtime } from "@/runtime"
 import type { GateKind } from "./types"
 

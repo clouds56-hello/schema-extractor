@@ -1,5 +1,5 @@
-import { extractSchemaFromFiles, extractSchemaFromStream, DEFAULT_ADAPTERS } from "./index"
 import type { ExtractorOptions } from "./config"
+import { DEFAULT_ADAPTERS, extractSchemaFromFiles, extractSchemaFromStream } from "./index"
 
 interface CliArgs {
   out: string | null
@@ -90,7 +90,6 @@ export async function runCli(argv: readonly string[]): Promise<void> {
   }
 
   if (args.out) {
-    // @ts-ignore - Bun global
     await Bun.write(args.out, ts)
     console.error(`wrote ${args.out}`)
   } else {

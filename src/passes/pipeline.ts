@@ -1,13 +1,13 @@
 import type { Schema } from "@/ir/types"
 import { TAG_CANDIDATES } from "@/ir/types"
-import { rewriteIR } from "./rewrite"
-import { applyRecordify } from "./recordify"
-import { applyHintsOnIR } from "./hint-dedup"
 import { applyAutoRecursive } from "./auto-recursive"
 import { applyFieldTagConsolidation } from "./field-tag"
-import { applyTagHints } from "./tag-hints"
-import { applyInlineUnify } from "./inline-unify"
+import { applyHintsOnIR } from "./hint-dedup"
 import { applyInlineSameKeys } from "./inline-samekeys"
+import { applyInlineUnify } from "./inline-unify"
+import { applyRecordify } from "./recordify"
+import { rewriteIR } from "./rewrite"
+import { applyTagHints } from "./tag-hints"
 
 export interface PipelineOptions {
   rootName: string

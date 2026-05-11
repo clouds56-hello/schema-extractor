@@ -1,12 +1,12 @@
-import type { Schema } from "@/ir/types"
 import { pickTagLiteral } from "@/ir/tags"
+import type { Schema } from "@/ir/types"
 import {
-  type PathCtx,
   descendArray,
   descendField,
   descendRecord,
   descendVariant,
   descendVariantFallback,
+  type PathCtx,
   pascal,
 } from "./name"
 

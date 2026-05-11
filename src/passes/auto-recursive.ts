@@ -1,7 +1,7 @@
-import type { Schema } from "@/ir/types"
-import { pickTagLiteral } from "@/ir/tags"
 import { collectHoists, type HoistMeta } from "@/emit/hoist"
 import { ROOT_CTX } from "@/emit/name"
+import { pickTagLiteral } from "@/ir/tags"
+import type { Schema } from "@/ir/types"
 import { mergeGroup } from "@/policy/combine"
 import { AUTO_RECURSIVE_POLICY } from "@/policy/presets"
 

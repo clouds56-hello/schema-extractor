@@ -1,6 +1,6 @@
-import type { Schema } from "@/ir/types"
-import { detectKeyAlias } from "@/ir/alias"
 import { dryRender } from "@/emit/dry-render"
+import { detectKeyAlias } from "@/ir/alias"
+import type { Schema } from "@/ir/types"
 import type { SimilarKind } from "./types"
 
 export function similarAccepts(a: Schema, b: Schema, kind: SimilarKind): boolean {

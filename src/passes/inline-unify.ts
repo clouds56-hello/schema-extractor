@@ -1,9 +1,9 @@
-import type { Schema } from "@/ir/types"
-import { pickTagLiteral } from "@/ir/tags"
-import { collectHoists, makeInlineMeta, type HoistMeta } from "@/emit/hoist"
+import { collectHoists, type HoistMeta, makeInlineMeta } from "@/emit/hoist"
 import { ROOT_CTX } from "@/emit/name"
+import { pickTagLiteral } from "@/ir/tags"
+import type { Schema } from "@/ir/types"
 import { mergeGroup } from "@/policy/combine"
-import { INLINE_VS_HOISTED_POLICY, INLINE_INLINE_POLICY } from "@/policy/presets"
+import { INLINE_INLINE_POLICY, INLINE_VS_HOISTED_POLICY } from "@/policy/presets"
 
 export interface InlineUnifyResult {
   canonicalFor: Map<Schema, Schema>

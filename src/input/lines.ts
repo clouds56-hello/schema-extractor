@@ -6,7 +6,7 @@
 export async function* lines(stream: ReadableStream<Uint8Array>): AsyncGenerator<string> {
   const dec = new TextDecoder("utf-8")
   let buf = ""
-  // @ts-ignore - async iteration over web streams works in Bun + Node 18+
+  // @ts-expect-error - async iteration over web streams works in Bun + Node 18+
   for await (const chunk of stream as AsyncIterable<Uint8Array>) {
     buf += dec.decode(chunk, { stream: true })
     let nl: number

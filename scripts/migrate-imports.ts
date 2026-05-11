@@ -6,8 +6,8 @@
  *     (relative siblings `./x` left alone)
  *   - outside src/: rewrite any specifier that resolves into src/ to `@/...`
  */
-import { readdirSync, statSync, readFileSync, writeFileSync } from "node:fs"
-import { join, dirname, relative, resolve } from "node:path"
+import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
+import { dirname, join, relative, resolve } from "node:path"
 
 const ROOT = resolve(import.meta.dir, "..")
 const SRC = join(ROOT, "src")
@@ -36,19 +36,19 @@ function rewriteSpec(file: string, spec: string): string {
 
   const fileDir = dirname(file)
   const target = resolve(fileDir, s)
-  const insideSrc = target.startsWith(SRC + "/") || target === SRC
+  const insideSrc = target.startsWith(`${SRC}/`) || target === SRC
 
   if (!insideSrc) return s
 
-  if (file.startsWith(SRC + "/")) {
+  if (file.startsWith(`${SRC}/`)) {
     // src→src: keep ./sibling, rewrite ../other → @/other
     if (s.startsWith("./")) return s
     // it's ../...; rewrite to @/<rel-from-src>
-    return "@/" + relative(SRC, target)
+    return `@/${relative(SRC, target)}`
   }
 
   // outside-src → src: always @/
-  return "@/" + relative(SRC, target)
+  return `@/${relative(SRC, target)}`
 }
 
 let changed = 0

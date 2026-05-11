@@ -1,10 +1,10 @@
-import type { Schema } from "./types"
-import { NEVER } from "./types"
-import { ALIASES, detectKeyAlias, isPathLike } from "./alias"
-import { pickTagKey } from "./tags"
-import { runtime } from "@/runtime"
 import { policyAccepts } from "@/policy/predicates"
 import { STREAM_MERGE_POLICY } from "@/policy/presets"
+import { runtime } from "@/runtime"
+import { ALIASES, detectKeyAlias, isPathLike } from "./alias"
+import { pickTagKey } from "./tags"
+import type { Schema } from "./types"
+import { NEVER } from "./types"
 
 export { NEVER }
 

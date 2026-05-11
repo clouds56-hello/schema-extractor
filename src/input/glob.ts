@@ -18,11 +18,10 @@ export function expandGlobs(patterns: readonly string[]): string[] {
     const prefix = segs.slice(0, i).join("/")
     const pattern = segs.slice(i).join("/")
     const cwd = prefix === "" ? (expanded.startsWith("/") ? "/" : ".") : prefix
-    // @ts-ignore - Bun global
     const glob = new Bun.Glob(pattern)
     const matches: string[] = []
     for (const m of glob.scanSync({ cwd, onlyFiles: true })) {
-      matches.push(cwd === "/" ? "/" + m : `${cwd}/${m}`)
+      matches.push(cwd === "/" ? `/${m}` : `${cwd}/${m}`)
     }
     if (matches.length === 0) {
       console.error(`warning: no files matched ${p}`)

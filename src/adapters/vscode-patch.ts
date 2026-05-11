@@ -1,7 +1,7 @@
+import { fromValue } from "@/ir/from-value"
+import { merge } from "@/ir/merge"
 import type { Schema } from "@/ir/types"
 import { NEVER } from "@/ir/types"
-import { merge } from "@/ir/merge"
-import { fromValue } from "@/ir/from-value"
 import type { Adapter } from "./types"
 
 function isPlainObject(value: unknown): value is Record<string, any> {
@@ -115,7 +115,7 @@ function looksLikeVscodePatch(records: readonly unknown[]): boolean {
   if (sample.length < 2) return false
   const patchLike = sample.filter((rec) => {
     if (!(rec.kind === 0 || rec.kind === 1 || rec.kind === 2)) return false
-    if (!Object.prototype.hasOwnProperty.call(rec, "v")) return false
+    if (!Object.hasOwn(rec, "v")) return false
     if (rec.kind === 0) return true
     return Array.isArray(rec.k)
   })
@@ -133,7 +133,7 @@ export const vscodePatchAdapter: Adapter = {
   name: "vscode-patch",
   detect(records) {
     if (!looksLikeVscodePatch(records)) return null
-    let state: unknown = undefined
+    let state: unknown
     const observed = new Map<string, { path: unknown[]; schema: Schema }>()
     for (const rec of records) {
       if (!isPlainObject(rec)) continue

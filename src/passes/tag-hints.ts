@@ -1,8 +1,8 @@
+import type { HoistMeta } from "@/emit/hoist"
+import { sha8 } from "@/emit/name"
 import type { Schema } from "@/ir/types"
 import { mergeGroup } from "@/policy/combine"
 import { TAG_HINT_POLICY } from "@/policy/presets"
-import { sha8 } from "@/emit/name"
-import type { HoistMeta } from "@/emit/hoist"
 
 export interface TagHintsResult {
   canonicalFor: Map<Schema, Schema>

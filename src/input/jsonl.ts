@@ -5,11 +5,10 @@ import { lines } from "./lines"
  * `.gz` or `.gzip`, transparently pipe through a gzip `DecompressionStream`.
  */
 export function openSource(path: string): ReadableStream<Uint8Array> {
-  // @ts-ignore - Bun global
   const f = Bun.file(path)
   let s: ReadableStream<Uint8Array> = f.stream()
   if (path.endsWith(".gz") || path.endsWith(".gzip")) {
-    // @ts-ignore - DecompressionStream is global in Bun
+    // @ts-expect-error - DecompressionStream typing mismatch (BufferSource vs Uint8Array)
     s = s.pipeThrough(new DecompressionStream("gzip"))
   }
   return s

@@ -1,6 +1,6 @@
-import type { Schema } from "@/ir/types"
-import { collectHoists, namePrefixOf, type HoistMeta } from "@/emit/hoist"
+import { collectHoists, type HoistMeta, namePrefixOf } from "@/emit/hoist"
 import { ROOT_CTX } from "@/emit/name"
+import type { Schema } from "@/ir/types"
 import { mergeGroup } from "@/policy/combine"
 import { HINT_POLICY } from "@/policy/presets"
 

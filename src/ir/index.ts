@@ -1,5 +1,5 @@
-export * from "./types"
 export * from "./alias"
-export * from "./tags"
 export * from "./from-value"
 export * from "./merge"
+export * from "./tags"
+export * from "./types"

@@ -1,12 +1,12 @@
-import type { Schema } from "@/ir/types"
+import { dryRender } from "@/emit/dry-render"
+import type { HoistMeta } from "@/emit/hoist"
 import { merge, mergeRecordWithObject } from "@/ir/merge"
 import { compatibleForMerge, pickTagLiteral } from "@/ir/tags"
-import { dryRender } from "@/emit/dry-render"
+import type { Schema } from "@/ir/types"
 import { pickCanonIndex } from "./pickers"
 import { policyAccepts } from "./predicates"
 import { STREAM_MERGE_POLICY } from "./presets"
 import type { CombineKind, MergePolicy } from "./types"
-import type { HoistMeta } from "@/emit/hoist"
 
 // Re-export so callers don't need a separate import path.
 export { policyAccepts }

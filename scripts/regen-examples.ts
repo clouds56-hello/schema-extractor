@@ -7,14 +7,12 @@ import { extractSchemaFromFiles } from "@/index"
 
 async function main() {
   const codex = await extractSchemaFromFiles(["~/.codex/sessions/**/*.jsonl"], { rootName: "CodexRollout" })
-  // @ts-ignore - Bun global
   await Bun.write("examples/codex.d.ts", codex)
   console.error("wrote examples/codex.d.ts")
 
   const copilot = await extractSchemaFromFiles(["~/.local/share/workspaceStorage/*/chatSessions/*.jsonl"], {
     rootName: "CopilotChat",
   })
-  // @ts-ignore
   await Bun.write("examples/copilot-chat.d.ts", copilot)
   console.error("wrote examples/copilot-chat.d.ts")
 }

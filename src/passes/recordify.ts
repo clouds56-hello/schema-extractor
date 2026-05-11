@@ -1,17 +1,17 @@
-import type { Schema } from "@/ir/types"
-import { NEVER } from "@/ir/types"
-import { detectKeyAlias } from "@/ir/alias"
-import { merge } from "@/ir/merge"
-import { pickTagLiteral } from "@/ir/tags"
 import {
-  type PathCtx,
-  ROOT_CTX,
   descendArray,
   descendField,
   descendRecord,
   descendVariant,
   descendVariantFallback,
+  type PathCtx,
+  ROOT_CTX,
 } from "@/emit/name"
+import { detectKeyAlias } from "@/ir/alias"
+import { merge } from "@/ir/merge"
+import { pickTagLiteral } from "@/ir/tags"
+import type { Schema } from "@/ir/types"
+import { NEVER } from "@/ir/types"
 
 /**
  * Phase 0: collapse alias-keyed objects (e.g., all-Path-keyed) into
@@ -47,8 +47,8 @@ export function applyRecordify(root: Schema, rootName: string, recordHints: read
         if (s.props.size === 0) return
         const keys = [...s.props.keys()]
         const hinted = (() => {
-          const padded = "_" + p.old + "_"
-          return recordHints.some((h) => padded.includes("_" + h + "_"))
+          const padded = `_${p.old}_`
+          return recordHints.some((h) => padded.includes(`_${h}_`))
         })()
         const alias = hinted ? "string" : detectKeyAlias(keys)
         if (!hinted && alias === "string") return
