@@ -6,15 +6,19 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-05-11
+
 ### Added
 - Build pipeline (`scripts/build.ts` + `tsconfig.build.json`): bundles each public entrypoint with `Bun.build` (target: `bun`, format: `esm`) into `dist/` with `@/*` aliases resolved at build time, then emits `.d.ts` declarations via `tsc` and rewrites alias paths in declarations via `tsc-alias`. Bin (`dist/bin/schema-extractor.js`) preserves its `#!/usr/bin/env bun` shebang and is marked executable. Triggered by `bun run build` and automatically by `prepublishOnly`.
-- `.github/workflows/release.yml`: publishes the package to npm with `--access public --provenance` when a `v*` tag passes CI. Verifies the tag matches `package.json` version before publishing. Requires repo secret `NPM_TOKEN`. Publish job is gated on the `npm` GitHub Environment, so the `NPM_TOKEN` secret is environment-scoped and any environment protection rules (required reviewers, wait timer, tag restrictions) apply before each release.
+- `.github/workflows/release.yml`: publishes the package to npm with `--access public --provenance` when a `v*` tag is pushed. A `verify` job runs `bun run ci` first; the `publish` job depends on it, runs under the `npm` GitHub Environment (so `NPM_TOKEN` is environment-scoped and any protection rules apply), and refuses to publish unless the tag matches `package.json` version.
 - `package.json` now points `main` / `module` / `types` / `exports` / `bin` at `dist/`, drops `src` and `bin` from `files` (replaced by `dist`).
-- CI runs on `v*` tag pushes too so the release workflow has a `workflow_run` trigger to depend on.
 
 ### Changed
 - `package.json` `repository` / `homepage` / `bugs` URLs updated to match the actual git remote (`github.com/clouds56-hello/schema-extractor`).
 - Copilot-chat sample input path moved from `~/.local/share/workspaceStorage/*/chatSessions/*.jsonl` to the canonical VSCode location `~/.config/Code/User/workspaceStorage/*/chatSessions/*.jsonl` in `schema-extractor.json`, the integration test, and the docs. Re-run `bun run regen:examples` once that path is populated to refresh `examples/copilot-chat.d.ts`.
+
+### Fixed
+- Release workflow trigger: switched from `workflow_run` on CI completion to a direct `push: tags: ['v*']` trigger. The previous design never fired because `github.event.workflow_run.head_branch` reports the underlying branch of the tagged commit (`main`), not the tag ref (`v0.1.1`), so the `startsWith(head_branch, 'v')` gate could never match. Tag-driven publish now works end-to-end. As a consequence `v0.1.1` was tagged but never published to npm; this release ships as `0.1.2`.
 
 ## [0.1.1] - 2026-05-11
 

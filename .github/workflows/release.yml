@@ -1,6 +1,6 @@
 name: Release
 
-# Publishes the package to npm when a v* tag passes CI.
+# Publishes the package to npm when a `v*` tag is pushed.
 #
 # Required repo secret:
 #   NPM_TOKEN — npm granular access token with publish permission for
@@ -9,20 +9,31 @@ name: Release
 #               token is only exposed to jobs that pass the environment's
 #               protection rules.
 #
-# Workflow uses npm's `--provenance` flag, which requires `id-token: write`
-# permission so GitHub OIDC can sign the package.
+# The publish job uses npm's `--provenance` flag, which requires
+# `id-token: write` permission so GitHub OIDC can sign the package.
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  push:
+    tags: ['v*']
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Run CI checks
+        run: bun run ci
+
   publish:
-    if: >-
-      github.event.workflow_run.event == 'push' &&
-      startsWith(github.event.workflow_run.head_branch, 'v') &&
-      github.event.workflow_run.conclusion == 'success'
+    needs: verify
     runs-on: ubuntu-latest
     environment: npm
     permissions:
@@ -30,8 +41,6 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -47,7 +56,7 @@ jobs:
 
       - name: Verify tag matches package.json version
         env:
-          TAG_REF: ${{ github.event.workflow_run.head_branch }}
+          TAG_REF: ${{ github.ref_name }}
         run: |
           tag="${TAG_REF#v}"
           pkg=$(node -p "require('./package.json').version")
