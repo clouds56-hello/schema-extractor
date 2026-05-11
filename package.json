@@ -2,6 +2,32 @@
   "name": "schema-extractor",
   "version": "0.1.0",
   "description": "Extract TypeScript schemas from JSON / JSONL streams",
+  "license": "MIT",
+  "author": "Clouds Flowing <clouds.flowing@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anomalyco/schema-extractor.git"
+  },
+  "homepage": "https://github.com/anomalyco/schema-extractor#readme",
+  "bugs": {
+    "url": "https://github.com/anomalyco/schema-extractor/issues"
+  },
+  "keywords": [
+    "schema",
+    "typescript",
+    "jsonl",
+    "json",
+    "type-inference",
+    "bun"
+  ],
+  "files": [
+    "src",
+    "bin",
+    "examples",
+    "schema-extractor.schema.json",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "main": "src/index.ts",
   "module": "src/index.ts",
@@ -21,6 +47,7 @@
     "test:update": "UPDATE_GOLDEN=1 bun test",
     "regen:examples": "bun bin/schema-extractor.ts gen",
     "bench": "bun scripts/bench.ts",
+    "pack:dry": "npm pack --dry-run",
     "typecheck": "bunx tsc --noEmit",
     "format": "biome format --write .",
     "lint": "biome lint .",
