@@ -20,6 +20,7 @@
     "test": "bun test",
     "test:update": "UPDATE_GOLDEN=1 bun test",
     "regen:examples": "bun bin/schema-extractor.ts gen",
+    "bench": "bun scripts/bench.ts",
     "typecheck": "bunx tsc --noEmit",
     "format": "biome format --write .",
     "lint": "biome lint .",
