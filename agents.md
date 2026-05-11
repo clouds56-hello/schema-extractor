@@ -45,21 +45,31 @@ src/
 │   └── document.ts   # final document layout: header + alias preamble + decls + root
 │
 ├── input/            # I/O at the edge
-│   ├── stream.ts     # streaming line reader, gzip decompress
-│   ├── glob.ts       # ~ + ** + glob expansion via Bun.Glob
-│   └── jsonl.ts      # JSONL ingest using a configured AdapterRegistry
+│   ├── lines.ts     # streaming line reader, gzip decompress
+│   ├── glob.ts      # ~ + ** + glob expansion via Bun.Glob
+│   ├── jsonl.ts     # JSONL ingest (parseJsonl, openSource)
+│   └── index.ts     # re-exports
 │
 ├── adapters/         # Pluggable input-shape replayers
-│   ├── types.ts      # InputAdapter interface (detect + replay)
-│   ├── vscode-patch.ts   # full port of maybeReplayVscodePatchJsonl
-│   └── codex-rollout.ts  # stub adapter (identity); demonstrates the slot
+│   ├── types.ts          # Adapter interface (detect + replay + optional transform)
+│   ├── vscode-patch.ts   # full port of maybeReplayVscodePatchJsonl; transform yields [state]
+│   ├── codex-rollout.ts  # stub adapter (identity); demonstrates the slot
+│   └── index.ts          # DEFAULT_ADAPTERS + runAdapters
 │
-├── runtime.ts        # process-level mutable config (e.g. USER_TAG_KEY)
-├── config.ts         # ExtractorOptions + defaults
-├── index.ts          # public API: extractSchema(), extractSchemaFromFiles(), types
-└── cli.ts            # argv parsing, stdin/file orchestration
+├── parse-dts/        # .d.ts → IR (used by check + simplify)
+│   └── index.ts     # parseDts: narrow grammar parser for our own emit shape
+│
+├── check/            # Validate JSON values against an IR
+│   └── index.ts     # checkRecords, mergeReport, formatReport, CheckReport
+│
+├── manifest.ts       # schema-extractor.json loader + walk-up + resolveTargetPaths
+├── runtime.ts        # process-level mutable config (e.g. userTagKey)
+├── config.ts         # ExtractorOptions + resolveOptions
+├── index.ts          # public API: extract*, check*, simplify*, parseDts, types
+└── cli.ts            # argv parsing for `gen` / `check` / `simplify` subcommands
 
 bin/schema-extractor.ts   # thin shebang wrapper → src/cli.ts
+scripts/bench.ts          # walks manifest, times gen+check, prints throughput
 ```
 
 ### Why this split
@@ -68,6 +78,8 @@ bin/schema-extractor.ts   # thin shebang wrapper → src/cli.ts
 - **`passes/`** is "specific high-level transforms" — each one calls into `policy/` with its own preset. New behaviors land here.
 - **`emit/`** is rendering only; it never mutates IR semantics (cycleSplice mutates *references* during hoisting, never types).
 - **`input/`** + **`adapters/`** are the only places allowed to do I/O.
+- **`parse-dts/`** + **`check/`** form the validation half: parseDts re-reads our own emitted grammar, check walks records against the resulting IR.
+- **`manifest.ts`** is the single source for `schema-extractor.json` discovery and target-path resolution; both `gen` and `check` use it for no-args mode.
 
 ### Pipeline (canonical order, see `passes/pipeline.ts`)
 ```
@@ -83,6 +95,38 @@ bin/schema-extractor.ts   # thin shebang wrapper → src/cli.ts
 ```
 Reordering breaks fixtures. If you must change the order, update the pipeline test under `tests/golden/cases/` first.
 
+### CLI surface (subcommand-based)
+- `gen` — extract a `.d.ts`. Three modes:
+  - no args → manifest mode (read `schema-extractor.json`, build every target).
+  - `-` → stdin → stdout.
+  - explicit files → stdout (or `--out`).
+  Per-file progress goes to stderr; `--quiet` suppresses it.
+- `check` — validate JSONL against a `.d.ts`. Two modes:
+  - no args → manifest mode (each target's input vs its committed output, exit 1 on any failure).
+  - `--schema <path> files...` → explicit one-shot.
+  Each input file emits an `OK N/M` or `FAIL k/M (reason)` line; `--quiet` suppresses per-file lines, only the summary remains.
+- `simplify` — re-emit an existing `.d.ts` through the simplification pipeline (record-detection, dedup, alias collapse).
+
+### Adapter contract
+`Adapter` (in `src/adapters/types.ts`):
+- `detect(records)` — return a Schema if this adapter recognises the batch, else null. Used during `gen`.
+- `transform?(records)` — optional. Materialise raw records into a different value sequence (e.g. `vscode-patch.transform` replays kind:0/1/2 patches into a single state object: `[state]`). Used during `check` so that validation runs against the same logical records the schema was generated from. If absent, raw records are validated.
+- `runAdapters(records, adapters)` — used during `gen`: tries each adapter's `detect`; first hit wins.
+- `DEFAULT_ADAPTERS` — `[vscodePatchAdapter, codexRolloutAdapter]`.
+
+### Manifest (`schema-extractor.json`)
+Schema in `schema-extractor.schema.json` (draft-07). Walk-up discovery from CWD via `findManifest()` in `src/manifest.ts`. Loader: `loadManifest(path)`. Path resolver: `resolveTargetPaths(target, manifestPath)` returns absolute `{ input, output }`. Input globs may use `~` and `**`. Manifest precedence: CLI flags > `target.options` > built-in defaults (handled by `mergeOptions` in `src/cli.ts`).
+
+### Validation (`check/`)
+- `checkRecords(records, schema)` — produces `CheckReport { pass, total, failed, typeStats, fieldStats, failures }`.
+- `mergeReport(into, add)` — aggregates per-file reports while preserving the global 20-failure cap (used by `checkJsonlAgainstDts` to support per-file callbacks).
+- `formatReport(report, detail)` — human summary; `--detail` adds per-field counts.
+- Union dispatch fast path: `pickTagDispatch` checks tag literals on object variants and validates against the matching variant directly. Avoids O(N) per-variant snapshot/restore of stats Maps that previously made deeply-nested untagged unions hang on real-world inputs.
+
+### Policy combine kinds (`policy/combine.ts`)
+- `"shallow"` — for tag-consolidated buckets (used by `field-tag` pass). Prim props union via `combinePrim`. Non-prim props with structurally-different incoming schemas are deep-merged via `mergeDeepSafe` (cycle-safe; plain `merge()` recurses unbounded on auto-recursive IR). **Regression**: prior to v7 the shallow path silently dropped divergent non-prim props, collapsing tagged-union variants whose nested object content differed across inputs (e.g. `progressTaskSerialized.content` in copilot-chat).
+- `"deep"` — full `merge()` everywhere; used outside the bucketing passes.
+
 ## Conventions
 
 ### Code
@@ -96,12 +140,20 @@ Reordering breaks fixtures. If you must change the order, update the pipeline te
 - **Tooling**: `bun run format` (write), `bun run lint` (check only), `bun run check` (format + lint + safe fixes).
 
 ### Commits
-- **Conventional Commits**: `<type>(optional-scope)!: <subject>`. Enforced by the `commit-msg` hook in `.githooks/` (active via `core.hooksPath`).
+- **Conventional Commits**: `<type>(optional-scope)!: <subject>`. Enforced by the `commit-msg` hook in `.githooks/` (active via `core.hooksPath=.githooks`).
 - **Allowed types**: `feat` (new behavior), `fix` (bug), `chore` (tooling/deps), `test`, `docs`, `refactor` (no behavior change), `style` (formatting only), `perf`, `build`, `ci`, `revert`.
 - **Scope** is optional and lowercase: `feat(adapters): …`, `fix(ir): …`. Use a top-level `src/` folder name or a high-level concept.
 - **Subject**: imperative mood, lowercase, ≤ 72 chars, no trailing period.
 - **Body** (optional): blank line, then wrapped ~72 cols. Explain *why*, not *what*.
 - **Authorship**: use the global `git config user.name` / `user.email` — never override per-commit.
+
+### Git hooks (`.githooks/`)
+Activated repo-locally with `git config core.hooksPath .githooks` (already set in this checkout).
+- `commit-msg` — enforces Conventional Commits format and ≤72-char subject.
+- `pre-commit` — runs `bun run typecheck` + `bun run lint`. Bypass with `--no-verify` only when fixing the hook itself.
+
+### CI (`.github/workflows/ci.yml`)
+Runs on push/PR to `main`: checkout → setup-bun (latest) → `bun install --frozen-lockfile` → typecheck → lint → test. Integration tests against `~/.codex/sessions` and `~/.local/share/workspaceStorage` self-skip on CI runners (no input dirs).
 
 ### Testing
 - **Run**: `bun test`
@@ -115,10 +167,10 @@ Reordering breaks fixtures. If you must change the order, update the pipeline te
 - The examples double as a real-world smoke test; if regen blows up, fix it before shipping changes to passes/ or emit/.
 
 ### Adding a new adapter
-1. Implement `InputAdapter` in `src/adapters/<name>.ts`.
-2. Export it from `src/adapters/index.ts`.
-3. Add it to `defaultAdapters` in `src/config.ts` if it should be on by default, OR document the opt-in in the README.
-4. Add a golden case under `tests/golden/cases/adapter-<name>/`.
+1. Implement `Adapter` in `src/adapters/<name>.ts` (`detect`, optional `transform`).
+2. Export it from `src/adapters/index.ts` and add to `DEFAULT_ADAPTERS` if always-on.
+3. Add a golden case under `tests/golden/cases/`.
+4. If it has a `transform`, add a unit test in `tests/unit/adapter-transform.test.ts` confirming the per-record materialization.
 
 ### Adding a new pass
 1. Implement `(root, opts) => { canonicalFor, newHoists?, hoistNames? }` in `src/passes/<name>.ts`.
