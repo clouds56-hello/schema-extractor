@@ -10,6 +10,7 @@ import { fromValue } from "./ir/from-value"
 import { merge } from "./ir/merge"
 import type { Schema } from "./ir/types"
 import { NEVER } from "./ir/types"
+import { parseDts } from "./parse-dts/index"
 import { runPipeline } from "./passes/pipeline"
 import { runtime } from "./runtime"
 
@@ -103,4 +104,29 @@ export async function extractSchemaFromFiles(
   } finally {
     runtime.userTagKey = prevTag
   }
+}
+
+/**
+ * Re-emit a `.d.ts` document after running the simplification pipeline on a
+ * previously generated schema. Useful for cleaning hand-written or stale
+ * declarations.
+ *
+ * The input must conform to the narrow grammar emitted by this library.
+ * The last `export type` declaration in the file is treated as the root
+ * unless `opts.rootName` matches an earlier decl by name.
+ */
+export function simplifyDts(source: string, opts: ExtractorOptions = {}): string {
+  const { decls, order } = parseDts(source)
+  if (decls.length === 0) throw new Error("simplify: no `export type` declarations found")
+  const requested = opts.rootName
+  let rootIdx = decls.length - 1
+  if (requested) {
+    const found = decls.findIndex((d) => d.name === requested)
+    if (found >= 0) rootIdx = found
+  }
+  const rootDecl = decls[rootIdx]!
+  const merged: ExtractorOptions = { ...opts, rootName: rootDecl.name }
+  const resolved = resolveOptions(merged)
+  void order
+  return emitDocument(rootDecl.schema, resolved)
 }

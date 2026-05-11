@@ -1,5 +1,5 @@
 import type { ExtractorOptions } from "./config"
-import { DEFAULT_ADAPTERS, extractSchemaFromFiles, extractSchemaFromStream } from "./index"
+import { DEFAULT_ADAPTERS, extractSchemaFromFiles, extractSchemaFromStream, simplifyDts } from "./index"
 
 interface GenArgs {
   out: string | null
@@ -151,9 +151,37 @@ async function cmdCheck(_argv: readonly string[]): Promise<void> {
   process.exit(2)
 }
 
-async function cmdSimplify(_argv: readonly string[]): Promise<void> {
-  console.error("simplify: not yet implemented")
-  process.exit(2)
+async function cmdSimplify(argv: readonly string[]): Promise<void> {
+  let inPath: string | null = null
+  let outPath: string | null = null
+  let name: string | null = null
+  for (let i = 0; i < argv.length; i++) {
+    const x = argv[i]!
+    if (x === "--in") inPath = argv[++i] ?? null
+    else if (x === "--out") outPath = argv[++i] ?? null
+    else if (x === "--name") name = argv[++i] ?? null
+    else if (x === "-h" || x === "--help") {
+      printSimplifyHelp()
+      return
+    } else {
+      console.error(`simplify: unknown arg ${x}`)
+      process.exit(2)
+    }
+  }
+  if (!inPath) {
+    console.error("simplify: --in <path> is required")
+    process.exit(2)
+  }
+  const src = await Bun.file(inPath).text()
+  const opts: ExtractorOptions = {}
+  if (name) opts.rootName = name
+  const out = simplifyDts(src, opts)
+  if (outPath) {
+    await Bun.write(outPath, out)
+    console.error(`wrote ${outPath}`)
+  } else {
+    process.stdout.write(out)
+  }
 }
 
 export async function runCli(argv: readonly string[]): Promise<void> {
