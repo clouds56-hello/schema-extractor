@@ -123,34 +123,59 @@ function looksLikeVscodePatch(records: readonly unknown[]): boolean {
 }
 
 /**
+ * Replay shared by `detect` and `transform`. Returns the final state and the
+ * map of observed leaf values keyed by JSON-stringified path.
+ */
+function replay(records: readonly unknown[]): {
+  state: unknown
+  observed: Map<string, { path: unknown[]; schema: Schema }>
+} | null {
+  let state: unknown
+  const observed = new Map<string, { path: unknown[]; schema: Schema }>()
+  for (const rec of records) {
+    if (!isPlainObject(rec)) continue
+    const kind = rec.kind
+    if (kind === 0) {
+      state = cloneJson(rec.v)
+    } else if (kind === 1 || kind === 2) {
+      const path = Array.isArray(rec.k) ? rec.k : null
+      if (!path) continue
+      recordObservedPatchValue(observed, path, rec.v, kind === 2)
+      if (kind === 1) state = setPathValue(state, path, cloneJson(rec.v))
+      else state = appendPathValue(state, path, cloneJson(rec.v))
+    }
+  }
+  if (state === undefined) return null
+  return { state, observed }
+}
+
+/**
  * Replays VS Code chat-session patch JSONL (`{kind:0,v}`, `{kind:1,k,v}`,
  * `{kind:2,k,v}`) into a single in-memory state, then unifies the resulting
  * concrete value's schema with the schema observed at each patched leaf so the
  * "type that ever flows into path X" stays in the IR even when later patches
  * narrow it. Returns null if the file doesn't look like a patch stream.
+ *
+ * `transform` returns `[state]` — a single-record array whose shape is what
+ * `detect`'s emitted Schema describes. Used by `check` to validate the
+ * post-replay data against the committed `.d.ts`.
  */
 export const vscodePatchAdapter: Adapter = {
   name: "vscode-patch",
   detect(records) {
     if (!looksLikeVscodePatch(records)) return null
-    let state: unknown
-    const observed = new Map<string, { path: unknown[]; schema: Schema }>()
-    for (const rec of records) {
-      if (!isPlainObject(rec)) continue
-      const kind = rec.kind
-      if (kind === 0) {
-        state = cloneJson(rec.v)
-      } else if (kind === 1 || kind === 2) {
-        const path = Array.isArray(rec.k) ? rec.k : null
-        if (!path) continue
-        recordObservedPatchValue(observed, path, rec.v, kind === 2)
-        if (kind === 1) state = setPathValue(state, path, cloneJson(rec.v))
-        else state = appendPathValue(state, path, cloneJson(rec.v))
-      }
+    const replayed = replay(records)
+    if (!replayed) return null
+    let schema = fromValue(replayed.state)
+    for (const entry of replayed.observed.values()) {
+      schema = mergeSchemaAtPath(schema, entry.path, entry.schema)
     }
-    if (state === undefined) return null
-    let schema = fromValue(state)
-    for (const entry of observed.values()) schema = mergeSchemaAtPath(schema, entry.path, entry.schema)
     return schema
+  },
+  transform(records) {
+    if (!looksLikeVscodePatch(records)) return records
+    const replayed = replay(records)
+    if (!replayed) return records
+    return [replayed.state]
   },
 }
