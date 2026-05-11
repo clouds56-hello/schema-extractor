@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs"
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { findManifest, loadManifest, parseManifest, resolveTargetPaths } from "@/manifest"
 
 describe("parseManifest", () => {
@@ -90,5 +90,36 @@ describe("resolveTargetPaths", () => {
     )
     expect(r.input).toEqual(["~/data/*.jsonl", "/abs/path.jsonl"])
     expect(r.output).toBe("/abs/out.d.ts")
+  })
+})
+
+describe("schema-extractor.schema.json", () => {
+  const repoRoot = resolve(__dirname, "..", "..")
+  const schemaPath = join(repoRoot, "schema-extractor.schema.json")
+  const manifestPath = join(repoRoot, "schema-extractor.json")
+
+  test("schema file is valid JSON with expected shape", () => {
+    const schema = JSON.parse(readFileSync(schemaPath, "utf8")) as Record<string, unknown>
+    expect(schema.type).toBe("object")
+    const defs = schema.definitions as Record<string, unknown>
+    expect(defs.Target).toBeDefined()
+  })
+
+  test("committed manifest references the schema", () => {
+    const m = JSON.parse(readFileSync(manifestPath, "utf8")) as Record<string, unknown>
+    expect(m.$schema).toBe("./schema-extractor.schema.json")
+  })
+
+  test("committed manifest's target keys are all in the schema", () => {
+    const schema = JSON.parse(readFileSync(schemaPath, "utf8")) as {
+      definitions: { Target: { properties: Record<string, unknown> } }
+    }
+    const allowed = new Set(Object.keys(schema.definitions.Target.properties))
+    const m = parseManifest(readFileSync(manifestPath, "utf8"))
+    for (const t of m.targets) {
+      for (const k of Object.keys(t)) {
+        expect(allowed.has(k)).toBe(true)
+      }
+    }
   })
 })
