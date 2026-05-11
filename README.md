@@ -3,7 +3,7 @@
 Extract TypeScript schemas from JSON / JSONL streams (incl. gzipped, incl. VS Code patch logs).
 
 ```
-bun run cli -- --name CodexSession --out examples/codex.d.ts '~/.codex/sessions/**/*.jsonl'
+bun run cli -- gen --name CodexSession --out examples/codex.d.ts '~/.codex/sessions/**/*.jsonl'
 ```
 
 Or programmatically:
@@ -22,10 +22,15 @@ See [`goal.md`](./goal.md) for scope and [`agents.md`](./agents.md) for architec
 ## CLI
 
 ```
-schema-extractor [--out PATH] [--name ROOT] [--tag KEY] [--no-adapters] [files...]
+schema-extractor <command> [options]
+
+Commands:
+  gen        Extract a .d.ts schema from JSONL inputs
+  check      Validate JSONL records against an existing .d.ts schema
+  simplify   Re-run the simplification pipeline on an existing .d.ts
 ```
 
-If no files are given, reads JSONL from stdin. `.gz` / `.gzip` files auto-decompress. File arguments support glob patterns (e.g. `'~/.codex/sessions/**/*.jsonl'`).
+`gen` reads JSONL from files (globs + `~` supported, `.gz` auto-decompressed) or stdin and writes a `.d.ts` to stdout (or `--out PATH`). Run any subcommand with `--help` for its options.
 
 ## API
 

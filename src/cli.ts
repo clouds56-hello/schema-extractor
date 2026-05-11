@@ -1,7 +1,7 @@
 import type { ExtractorOptions } from "./config"
 import { DEFAULT_ADAPTERS, extractSchemaFromFiles, extractSchemaFromStream } from "./index"
 
-interface CliArgs {
+interface GenArgs {
   out: string | null
   name: string
   tag: string | null
@@ -12,27 +12,76 @@ interface CliArgs {
   files: string[]
 }
 
-function printHelp(): void {
+function printRootHelp(): void {
   process.stdout.write(
-    `Usage: schema-extractor [options] [files...]\n` +
-      `\n` +
-      `Reads JSONL from files (globs + ~ supported, .gz auto-decompressed) or stdin\n` +
-      `and prints a TypeScript .d.ts to stdout (or --out <path>).\n` +
-      `\n` +
-      `Options:\n` +
-      `  --out <path>          Write to file instead of stdout\n` +
-      `  --name <Root>         Root type name (default: Root)\n` +
-      `  --tag <key>           Extra discriminator key\n` +
-      `  --no-adapters         Disable file-shape adapters (vscode-patch, ...)\n` +
-      `  --hint <Scope:Name>   Add a dedup hint (repeatable). Format: "ScopePrefix:NamePrefix"\n` +
-      `  --record-hint <Seg>   Add a record-collapse hint (repeatable)\n` +
-      `  --multi-tag <Key>     Add a global-tag hint (repeatable)\n` +
-      `  -h, --help            Show this help\n`,
+    `Usage: schema-extractor <command> [options]
+
+Commands:
+  gen        Extract a .d.ts schema from JSONL inputs (default behavior)
+  check      Validate JSONL records against an existing .d.ts schema
+  simplify   Re-run the simplification pipeline on an existing .d.ts
+
+Use \`schema-extractor <command> --help\` for command-specific options.
+`,
   )
 }
 
-function parseArgs(argv: readonly string[]): CliArgs {
-  const a: CliArgs = {
+function printGenHelp(): void {
+  process.stdout.write(
+    `Usage: schema-extractor gen [options] [files...]
+
+Reads JSONL from files (globs + ~ supported, .gz auto-decompressed) or stdin
+and prints a TypeScript .d.ts to stdout (or --out <path>).
+
+Options:
+  --out <path>          Write to file instead of stdout
+  --name <Root>         Root type name (default: Root)
+  --tag <key>           Extra discriminator key
+  --no-adapters         Disable file-shape adapters (vscode-patch, ...)
+  --hint <Scope:Name>   Add a dedup hint (repeatable). Format: "ScopePrefix:NamePrefix"
+  --record-hint <Seg>   Add a record-collapse hint (repeatable)
+  --multi-tag <Key>     Add a global-tag hint (repeatable)
+  -h, --help            Show this help
+`,
+  )
+}
+
+function printCheckHelp(): void {
+  process.stdout.write(
+    `Usage: schema-extractor check --schema <path> [options] [files...]
+
+Validate each JSONL record against a previously generated .d.ts schema.
+Reports overall pass/fail plus per-type instance counts.
+
+Options:
+  --schema <path>       Path to .d.ts schema (required)
+  --root <Name>         Which exported type to validate against (default: first)
+  --detail              Also print per-field instance counts
+  -h, --help            Show this help
+
+Exit codes: 0 = all records valid, 1 = at least one validation failure.
+`,
+  )
+}
+
+function printSimplifyHelp(): void {
+  process.stdout.write(
+    `Usage: schema-extractor simplify --in <path> [options]
+
+Parse an existing .d.ts, run it through the simplification pipeline
+(record-detection, dedup, alias collapse), and emit a cleaner .d.ts.
+
+Options:
+  --in <path>           Input .d.ts (required)
+  --out <path>          Output path (default: stdout)
+  --name <Root>         Override root type name
+  -h, --help            Show this help
+`,
+  )
+}
+
+function parseGenArgs(argv: readonly string[]): GenArgs {
+  const a: GenArgs = {
     out: null,
     name: "Root",
     tag: null,
@@ -59,7 +108,7 @@ function parseArgs(argv: readonly string[]): CliArgs {
     } else if (x === "--record-hint") a.recordHint.push(argv[++i] ?? "")
     else if (x === "--multi-tag") a.multiTagHint.push(argv[++i] ?? "")
     else if (x === "-h" || x === "--help") {
-      printHelp()
+      printGenHelp()
       process.exit(0)
     } else if (x.startsWith("--")) {
       console.error(`unknown flag: ${x}`)
@@ -69,8 +118,8 @@ function parseArgs(argv: readonly string[]): CliArgs {
   return a
 }
 
-export async function runCli(argv: readonly string[]): Promise<void> {
-  const args = parseArgs(argv)
+async function cmdGen(argv: readonly string[]): Promise<void> {
+  const args = parseGenArgs(argv)
   const opts: ExtractorOptions = {
     rootName: args.name,
     userTagKey: args.tag,
@@ -94,5 +143,45 @@ export async function runCli(argv: readonly string[]): Promise<void> {
     console.error(`wrote ${args.out}`)
   } else {
     process.stdout.write(ts)
+  }
+}
+
+async function cmdCheck(_argv: readonly string[]): Promise<void> {
+  console.error("check: not yet implemented")
+  process.exit(2)
+}
+
+async function cmdSimplify(_argv: readonly string[]): Promise<void> {
+  console.error("simplify: not yet implemented")
+  process.exit(2)
+}
+
+export async function runCli(argv: readonly string[]): Promise<void> {
+  const subcmd = argv[0]
+  const rest = argv.slice(1)
+  switch (subcmd) {
+    case "gen":
+      return cmdGen(rest)
+    case "check":
+      if (rest[0] === "-h" || rest[0] === "--help") {
+        printCheckHelp()
+        return
+      }
+      return cmdCheck(rest)
+    case "simplify":
+      if (rest[0] === "-h" || rest[0] === "--help") {
+        printSimplifyHelp()
+        return
+      }
+      return cmdSimplify(rest)
+    case "-h":
+    case "--help":
+    case undefined:
+      printRootHelp()
+      return
+    default:
+      console.error(`unknown command: ${subcmd}`)
+      printRootHelp()
+      process.exit(2)
   }
 }
