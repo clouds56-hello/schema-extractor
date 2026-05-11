@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
-import { runCli } from "../src/cli.js";
+import { runCli } from "@/cli"
 
 runCli(process.argv.slice(2)).catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+  console.error(e)
+  process.exit(1)
+})

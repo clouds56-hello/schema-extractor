@@ -1,79 +1,79 @@
-import type { Schema } from "../ir/types.js";
-import { NEVER } from "../ir/types.js";
-import { merge } from "../ir/merge.js";
-import { fromValue } from "../ir/from-value.js";
-import type { Adapter } from "./types.js";
+import type { Schema } from "@/ir/types"
+import { NEVER } from "@/ir/types"
+import { merge } from "@/ir/merge"
+import { fromValue } from "@/ir/from-value"
+import type { Adapter } from "./types"
 
 function isPlainObject(value: unknown): value is Record<string, any> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null && !Array.isArray(value)
 }
 
 function cloneJson<T>(value: T): T {
-  return value === undefined ? value : JSON.parse(JSON.stringify(value));
+  return value === undefined ? value : JSON.parse(JSON.stringify(value))
 }
 
 function normalizePathKey(key: unknown): string | number | null {
-  if (typeof key === "string") return key;
-  if (typeof key === "number" && Number.isInteger(key) && key >= 0) return key;
-  return null;
+  if (typeof key === "string") return key
+  if (typeof key === "number" && Number.isInteger(key) && key >= 0) return key
+  return null
 }
 
 function containerFor(nextKey: unknown): unknown {
-  return typeof nextKey === "number" ? [] : {};
+  return typeof nextKey === "number" ? [] : {}
 }
 
 function getChild(container: any, key: string | number): unknown {
-  if (Array.isArray(container) && typeof key === "number") return container[key];
-  if (isPlainObject(container) && typeof key === "string") return container[key];
-  return undefined;
+  if (Array.isArray(container) && typeof key === "number") return container[key]
+  if (isPlainObject(container) && typeof key === "string") return container[key]
+  return undefined
 }
 
 function setChild(container: any, key: string | number, value: unknown) {
-  if (Array.isArray(container) && typeof key === "number") container[key] = value;
-  else if (isPlainObject(container) && typeof key === "string") container[key] = value;
+  if (Array.isArray(container) && typeof key === "number") container[key] = value
+  else if (isPlainObject(container) && typeof key === "string") container[key] = value
 }
 
 function ensurePath(root: any, path: unknown[], leafFallback: unknown): any {
-  let cur = root;
+  let cur = root
   for (let i = 0; i < path.length; i++) {
-    const key = normalizePathKey(path[i]);
-    if (key === null) return cur;
-    const fallback = i === path.length - 1 ? leafFallback : containerFor(path[i + 1]);
-    let child = getChild(cur, key);
+    const key = normalizePathKey(path[i])
+    if (key === null) return cur
+    const fallback = i === path.length - 1 ? leafFallback : containerFor(path[i + 1])
+    let child = getChild(cur, key)
     if (child === undefined || child === null || (typeof child !== "object" && i < path.length - 1)) {
-      child = cloneJson(fallback);
-      setChild(cur, key, child);
+      child = cloneJson(fallback)
+      setChild(cur, key, child)
     }
-    cur = child;
+    cur = child
   }
-  return cur;
+  return cur
 }
 
 function ensureParent(root: unknown, path: unknown[]): { container: any; key: string | number } | null {
-  if (path.length === 0) return null;
-  const parentPath = path.slice(0, -1);
-  const key = normalizePathKey(path[path.length - 1]);
-  if (key === null) return null;
-  return { container: ensurePath(root, parentPath, containerFor(key)), key };
+  if (path.length === 0) return null
+  const parentPath = path.slice(0, -1)
+  const key = normalizePathKey(path[path.length - 1])
+  if (key === null) return null
+  return { container: ensurePath(root, parentPath, containerFor(key)), key }
 }
 
 function setPathValue(root: unknown, path: unknown[], value: unknown): unknown {
-  if (path.length === 0) return value;
-  const nextRoot = root === undefined ? containerFor(path[0]) : root;
-  const parent = ensureParent(nextRoot, path);
-  if (!parent) return nextRoot;
-  setChild(parent.container, parent.key, value);
-  return nextRoot;
+  if (path.length === 0) return value
+  const nextRoot = root === undefined ? containerFor(path[0]) : root
+  const parent = ensureParent(nextRoot, path)
+  if (!parent) return nextRoot
+  setChild(parent.container, parent.key, value)
+  return nextRoot
 }
 
 function appendPathValue(root: unknown, path: unknown[], value: unknown): unknown {
-  const nextRoot = root === undefined ? containerFor(path[0]) : root;
-  const target = ensurePath(nextRoot, path, []);
+  const nextRoot = root === undefined ? containerFor(path[0]) : root
+  const target = ensurePath(nextRoot, path, [])
   if (Array.isArray(target)) {
-    if (Array.isArray(value)) target.push(...value);
-    else target.push(value);
+    if (Array.isArray(value)) target.push(...value)
+    else target.push(value)
   }
-  return nextRoot;
+  return nextRoot
 }
 
 function recordObservedPatchValue(
@@ -82,43 +82,44 @@ function recordObservedPatchValue(
   value: unknown,
   append: boolean,
 ) {
-  const key = JSON.stringify(path);
-  const schema = append && Array.isArray(value)
-    ? fromValue(value)
-    : append
-      ? ({ k: "array", item: fromValue(value) } as Schema)
-      : fromValue(value);
-  const prev = observed.get(key);
-  observed.set(key, { path: [...path], schema: prev ? merge(prev.schema, schema) : schema });
+  const key = JSON.stringify(path)
+  const schema =
+    append && Array.isArray(value)
+      ? fromValue(value)
+      : append
+        ? ({ k: "array", item: fromValue(value) } as Schema)
+        : fromValue(value)
+  const prev = observed.get(key)
+  observed.set(key, { path: [...path], schema: prev ? merge(prev.schema, schema) : schema })
 }
 
 function mergeSchemaAtPath(root: Schema, path: unknown[], observed: Schema): Schema {
-  if (path.length === 0) return merge(root, observed);
-  const [head, ...tail] = path;
-  const key = normalizePathKey(head);
-  if (key === null) return root;
+  if (path.length === 0) return merge(root, observed)
+  const [head, ...tail] = path
+  const key = normalizePathKey(head)
+  if (key === null) return root
   if (typeof key === "number") {
-    if (root.k !== "array") return root;
-    return { k: "array", item: mergeSchemaAtPath(root.item, tail, observed) };
+    if (root.k !== "array") return root
+    return { k: "array", item: mergeSchemaAtPath(root.item, tail, observed) }
   }
-  if (root.k !== "object") return root;
-  const props = new Map(root.props);
-  const existing = props.get(key);
-  const child = mergeSchemaAtPath(existing?.schema ?? NEVER, tail, observed);
-  props.set(key, { schema: child, present: existing?.present ?? root.total });
-  return { k: "object", total: root.total, props };
+  if (root.k !== "object") return root
+  const props = new Map(root.props)
+  const existing = props.get(key)
+  const child = mergeSchemaAtPath(existing?.schema ?? NEVER, tail, observed)
+  props.set(key, { schema: child, present: existing?.present ?? root.total })
+  return { k: "object", total: root.total, props }
 }
 
 function looksLikeVscodePatch(records: readonly unknown[]): boolean {
-  const sample = records.filter(isPlainObject).slice(0, 20);
-  if (sample.length < 2) return false;
+  const sample = records.filter(isPlainObject).slice(0, 20)
+  if (sample.length < 2) return false
   const patchLike = sample.filter((rec) => {
-    if (!(rec.kind === 0 || rec.kind === 1 || rec.kind === 2)) return false;
-    if (!Object.prototype.hasOwnProperty.call(rec, "v")) return false;
-    if (rec.kind === 0) return true;
-    return Array.isArray(rec.k);
-  });
-  return patchLike.length >= 2 && patchLike.length / sample.length >= 0.8 && sample.some((rec) => rec.kind === 0);
+    if (!(rec.kind === 0 || rec.kind === 1 || rec.kind === 2)) return false
+    if (!Object.prototype.hasOwnProperty.call(rec, "v")) return false
+    if (rec.kind === 0) return true
+    return Array.isArray(rec.k)
+  })
+  return patchLike.length >= 2 && patchLike.length / sample.length >= 0.8 && sample.some((rec) => rec.kind === 0)
 }
 
 /**
@@ -131,25 +132,25 @@ function looksLikeVscodePatch(records: readonly unknown[]): boolean {
 export const vscodePatchAdapter: Adapter = {
   name: "vscode-patch",
   detect(records) {
-    if (!looksLikeVscodePatch(records)) return null;
-    let state: unknown = undefined;
-    const observed = new Map<string, { path: unknown[]; schema: Schema }>();
+    if (!looksLikeVscodePatch(records)) return null
+    let state: unknown = undefined
+    const observed = new Map<string, { path: unknown[]; schema: Schema }>()
     for (const rec of records) {
-      if (!isPlainObject(rec)) continue;
-      const kind = rec.kind;
+      if (!isPlainObject(rec)) continue
+      const kind = rec.kind
       if (kind === 0) {
-        state = cloneJson(rec.v);
+        state = cloneJson(rec.v)
       } else if (kind === 1 || kind === 2) {
-        const path = Array.isArray(rec.k) ? rec.k : null;
-        if (!path) continue;
-        recordObservedPatchValue(observed, path, rec.v, kind === 2);
-        if (kind === 1) state = setPathValue(state, path, cloneJson(rec.v));
-        else state = appendPathValue(state, path, cloneJson(rec.v));
+        const path = Array.isArray(rec.k) ? rec.k : null
+        if (!path) continue
+        recordObservedPatchValue(observed, path, rec.v, kind === 2)
+        if (kind === 1) state = setPathValue(state, path, cloneJson(rec.v))
+        else state = appendPathValue(state, path, cloneJson(rec.v))
       }
     }
-    if (state === undefined) return null;
-    let schema = fromValue(state);
-    for (const entry of observed.values()) schema = mergeSchemaAtPath(schema, entry.path, entry.schema);
-    return schema;
+    if (state === undefined) return null
+    let schema = fromValue(state)
+    for (const entry of observed.values()) schema = mergeSchemaAtPath(schema, entry.path, entry.schema)
+    return schema
   },
-};
+}

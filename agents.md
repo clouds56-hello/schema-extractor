@@ -87,10 +87,13 @@ Reordering breaks fixtures. If you must change the order, update the pipeline te
 
 ### Code
 - TS, ESM, Bun-native. No build step.
+- **No semicolons.** Biome enforces `semicolons: "asNeeded"`. Lines that begin with `[ ( \` + - /` get a leading `;` (ASI prefix-semi convention).
+- **Imports**: cross-folder uses the `@/` path alias (resolves to `src/`); same-folder siblings use `./name`. Outside `src/` (bin, scripts, tests) always use `@/`. Never include `.js` or `.ts` in import specifiers.
 - Prefer `interface` for record types, `type` for unions / aliases.
 - Discriminated unions use `k:` (kept short because it shows up everywhere in the IR).
 - No silent catches: surface parse errors via `console.error` with `[source:line]` prefix.
 - No mutation of input IRs across module boundaries except inside `passes/` (where the doc strings explicitly mention canonical-rewriting). `merge()` and `from-value()` allocate fresh IRs.
+- **Tooling**: `bun run format` (write), `bun run lint` (check only), `bun run check` (format + lint + safe fixes).
 
 ### Testing
 - **Run**: `bun test`

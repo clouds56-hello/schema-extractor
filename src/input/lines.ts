@@ -4,18 +4,18 @@
  * is yielded after the stream ends.
  */
 export async function* lines(stream: ReadableStream<Uint8Array>): AsyncGenerator<string> {
-  const dec = new TextDecoder("utf-8");
-  let buf = "";
+  const dec = new TextDecoder("utf-8")
+  let buf = ""
   // @ts-ignore - async iteration over web streams works in Bun + Node 18+
   for await (const chunk of stream as AsyncIterable<Uint8Array>) {
-    buf += dec.decode(chunk, { stream: true });
-    let nl: number;
+    buf += dec.decode(chunk, { stream: true })
+    let nl: number
     while ((nl = buf.indexOf("\n")) >= 0) {
-      const line = buf.slice(0, nl);
-      buf = buf.slice(nl + 1);
-      yield line;
+      const line = buf.slice(0, nl)
+      buf = buf.slice(nl + 1)
+      yield line
     }
   }
-  buf += dec.decode();
-  if (buf.length) yield buf;
+  buf += dec.decode()
+  if (buf.length) yield buf
 }

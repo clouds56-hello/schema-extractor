@@ -1,24 +1,24 @@
 // String alias detection: pick the most specific format that ALL observed strings match.
 
 export interface AliasDef {
-  name: string;
-  predicate: (s: string) => boolean;
+  name: string
+  predicate: (s: string) => boolean
   /** If set, at least one sample across the merged set must satisfy this in addition to `predicate`. */
-  evidence?: (s: string) => boolean;
+  evidence?: (s: string) => boolean
 }
 
 export function isPathLike(key: string): boolean {
-  if (!key) return false;
-  if (key.includes("/") || key.includes("\\")) return true;
-  if (key.startsWith("~")) return true;
-  return false;
+  if (!key) return false
+  if (key.includes("/") || key.includes("\\")) return true
+  if (key.startsWith("~")) return true
+  return false
 }
 
 export function isPathLikeValue(s: string): boolean {
-  if (!s) return false;
-  if (s.startsWith("~/") || s.startsWith("./") || s.startsWith("../")) return true;
-  if (s.includes("/") || s.includes("\\")) return true;
-  return false;
+  if (!s) return false
+  if (s.startsWith("~/") || s.startsWith("./") || s.startsWith("../")) return true
+  if (s.includes("/") || s.includes("\\")) return true
+  return false
 }
 
 // Order matters: most specific first. Render precedence follows this list.
@@ -41,24 +41,24 @@ export const ALIASES: AliasDef[] = [
     predicate: (s) => s.length >= 24 && s.length % 4 === 0 && /^[A-Za-z0-9+/]+=*$/.test(s),
     evidence: (s) => s.endsWith("="),
   },
-];
+]
 
 export function buildAliasMaps(s: string): { only: Map<string, boolean>; ev: Map<string, boolean> } {
-  const only = new Map<string, boolean>();
-  const ev = new Map<string, boolean>();
+  const only = new Map<string, boolean>()
+  const ev = new Map<string, boolean>()
   for (const a of ALIASES) {
-    only.set(a.name, a.predicate(s));
-    if (a.evidence) ev.set(a.name, a.evidence(s));
+    only.set(a.name, a.predicate(s))
+    if (a.evidence) ev.set(a.name, a.evidence(s))
   }
-  return { only, ev };
+  return { only, ev }
 }
 
 /** Pick the most specific alias from ALIASES that all keys satisfy (with evidence if required). */
 export function detectKeyAlias(keys: string[]): string {
   for (const def of ALIASES) {
-    if (!keys.every((k) => def.predicate(k))) continue;
-    if (def.evidence && !keys.some((k) => def.evidence!(k))) continue;
-    return def.name;
+    if (!keys.every((k) => def.predicate(k))) continue
+    if (def.evidence && !keys.some((k) => def.evidence!(k))) continue
+    return def.name
   }
-  return "string";
+  return "string"
 }

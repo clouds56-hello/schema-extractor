@@ -4,8 +4,8 @@
 export const runtime = {
   /** User-supplied tag key (overrides TAG_CANDIDATES discrimination). */
   userTagKey: null as string | null,
-};
+}
 
 export function setUserTagKey(key: string | null): void {
-  runtime.userTagKey = key;
+  runtime.userTagKey = key
 }

@@ -1,4 +1,4 @@
-import type { Adapter } from "./types.js";
+import type { Adapter } from "./types"
 
 /**
  * Stub. The default per-record path already handles Codex rollout JSONL
@@ -8,6 +8,6 @@ import type { Adapter } from "./types.js";
 export const codexRolloutAdapter: Adapter = {
   name: "codex-rollout",
   detect() {
-    return null;
+    return null
   },
-};
+}

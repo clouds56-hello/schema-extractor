@@ -16,7 +16,11 @@
     "skipLibCheck": true,
     "noEmit": true,
     "allowJs": false,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src/**/*", "bin/**/*", "scripts/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist", "old"]

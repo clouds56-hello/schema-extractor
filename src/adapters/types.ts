@@ -1,4 +1,4 @@
-import type { Schema } from "../ir/types.js";
+import type { Schema } from "@/ir/types"
 
 /**
  * An adapter inspects a batch of parsed JSONL records (per-file) and may
@@ -8,10 +8,10 @@ import type { Schema } from "../ir/types.js";
  */
 export interface Adapter {
   /** Stable identifier; used for `--no-adapters` denylists, debugging. */
-  name: string;
+  name: string
   /**
    * Called with the full parsed-record array for one source. Return a Schema
    * to claim the file, or null to defer.
    */
-  detect(records: readonly unknown[]): Schema | null;
+  detect(records: readonly unknown[]): Schema | null
 }

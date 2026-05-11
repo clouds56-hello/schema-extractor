@@ -1,3 +1,3 @@
-export * from "./lines.js";
-export * from "./jsonl.js";
-export * from "./glob.js";
+export * from "./lines"
+export * from "./jsonl"
+export * from "./glob"

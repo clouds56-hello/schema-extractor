@@ -1,22 +1,22 @@
-import type { Schema } from "./ir/types.js";
-import { NEVER } from "./ir/types.js";
-import { merge } from "./ir/merge.js";
-import { fromValue } from "./ir/from-value.js";
-import { runPipeline } from "./passes/pipeline.js";
-import { makeEmitCtx, render } from "./emit/render.js";
-import { dedupeDecls } from "./emit/dedupe.js";
-import { buildDocument } from "./emit/document.js";
-import { runtime } from "./runtime.js";
-import { runAdapters } from "./adapters/index.js";
-import { openSource, parseJsonl } from "./input/jsonl.js";
-import { expandGlobs } from "./input/glob.js";
-import type { ExtractorOptions } from "./config.js";
-import { resolveOptions } from "./config.js";
+import type { Schema } from "./ir/types"
+import { NEVER } from "./ir/types"
+import { merge } from "./ir/merge"
+import { fromValue } from "./ir/from-value"
+import { runPipeline } from "./passes/pipeline"
+import { makeEmitCtx, render } from "./emit/render"
+import { dedupeDecls } from "./emit/dedupe"
+import { buildDocument } from "./emit/document"
+import { runtime } from "./runtime"
+import { runAdapters } from "./adapters/index"
+import { openSource, parseJsonl } from "./input/jsonl"
+import { expandGlobs } from "./input/glob"
+import type { ExtractorOptions } from "./config"
+import { resolveOptions } from "./config"
 
-export type { ExtractorOptions } from "./config.js";
-export type { Schema } from "./ir/types.js";
-export type { Adapter } from "./adapters/index.js";
-export { DEFAULT_ADAPTERS, vscodePatchAdapter, codexRolloutAdapter } from "./adapters/index.js";
+export type { ExtractorOptions } from "./config"
+export type { Schema } from "./ir/types"
+export type { Adapter } from "./adapters/index"
+export { DEFAULT_ADAPTERS, vscodePatchAdapter, codexRolloutAdapter } from "./adapters/index"
 
 /** Run the full pipeline on an in-memory IR and emit a TypeScript document. */
 function emitDocument(root: Schema, opts: ReturnType<typeof resolveOptions>): string {
@@ -25,19 +25,19 @@ function emitDocument(root: Schema, opts: ReturnType<typeof resolveOptions>): st
     recordHints: opts.recordHints,
     dedupHints: opts.dedupHints,
     multiTagHints: opts.multiTagHints,
-  });
-  const ctx = makeEmitCtx([opts.rootName]);
-  ctx.hoistedSet = piped.hoistedSet;
-  ctx.hoistName = piped.hoistNames;
-  const renderedRaw = render(piped.root, ctx, { old: opts.rootName, pretty: "", field: "" });
-  const after = dedupeDecls(ctx.decls, renderedRaw);
+  })
+  const ctx = makeEmitCtx([opts.rootName])
+  ctx.hoistedSet = piped.hoistedSet
+  ctx.hoistName = piped.hoistNames
+  const renderedRaw = render(piped.root, ctx, { old: opts.rootName, pretty: "", field: "" })
+  const after = dedupeDecls(ctx.decls, renderedRaw)
   return buildDocument({
     ctx,
     decls: after.decls,
     rootName: opts.rootName,
     renderedRoot: after.root,
     header: opts.header,
-  });
+  })
 }
 
 /**
@@ -45,15 +45,15 @@ function emitDocument(root: Schema, opts: ReturnType<typeof resolveOptions>): st
  * Adapters are NOT consulted (they only fire on JSONL file ingest).
  */
 export function extractSchema(values: Iterable<unknown>, opts: ExtractorOptions = {}): string {
-  const resolved = resolveOptions(opts);
-  const prevTag = runtime.userTagKey;
-  runtime.userTagKey = resolved.userTagKey;
+  const resolved = resolveOptions(opts)
+  const prevTag = runtime.userTagKey
+  runtime.userTagKey = resolved.userTagKey
   try {
-    let schema: Schema = NEVER;
-    for (const v of values) schema = merge(schema, fromValue(v));
-    return emitDocument(schema, resolved);
+    let schema: Schema = NEVER
+    for (const v of values) schema = merge(schema, fromValue(v))
+    return emitDocument(schema, resolved)
   } finally {
-    runtime.userTagKey = prevTag;
+    runtime.userTagKey = prevTag
   }
 }
 
@@ -66,15 +66,15 @@ export async function extractSchemaFromStream(
   opts: ExtractorOptions = {},
   label = "<stream>",
 ): Promise<string> {
-  const resolved = resolveOptions(opts);
-  const prevTag = runtime.userTagKey;
-  runtime.userTagKey = resolved.userTagKey;
+  const resolved = resolveOptions(opts)
+  const prevTag = runtime.userTagKey
+  runtime.userTagKey = resolved.userTagKey
   try {
-    const records = await parseJsonl(stream, label);
-    const schema = runAdapters(records, resolved.adapters);
-    return emitDocument(schema, resolved);
+    const records = await parseJsonl(stream, label)
+    const schema = runAdapters(records, resolved.adapters)
+    return emitDocument(schema, resolved)
   } finally {
-    runtime.userTagKey = prevTag;
+    runtime.userTagKey = prevTag
   }
 }
 
@@ -87,20 +87,20 @@ export async function extractSchemaFromFiles(
   patterns: readonly string[],
   opts: ExtractorOptions = {},
 ): Promise<string> {
-  const resolved = resolveOptions(opts);
-  const prevTag = runtime.userTagKey;
-  runtime.userTagKey = resolved.userTagKey;
+  const resolved = resolveOptions(opts)
+  const prevTag = runtime.userTagKey
+  runtime.userTagKey = resolved.userTagKey
   try {
-    const files = expandGlobs(patterns);
-    if (files.length === 0) throw new Error("no input files matched");
-    let schema: Schema = NEVER;
+    const files = expandGlobs(patterns)
+    if (files.length === 0) throw new Error("no input files matched")
+    let schema: Schema = NEVER
     for (const f of files) {
-      const records = await parseJsonl(openSource(f), f);
-      schema = merge(schema, runAdapters(records, resolved.adapters));
-      console.error(`[${f}] processed ${records.length} records`);
+      const records = await parseJsonl(openSource(f), f)
+      schema = merge(schema, runAdapters(records, resolved.adapters))
+      console.error(`[${f}] processed ${records.length} records`)
     }
-    return emitDocument(schema, resolved);
+    return emitDocument(schema, resolved)
   } finally {
-    runtime.userTagKey = prevTag;
+    runtime.userTagKey = prevTag
   }
 }

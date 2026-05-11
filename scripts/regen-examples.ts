@@ -3,24 +3,23 @@
  * Regenerate the committed examples in `examples/`. Run with:
  *   bun run regen:examples
  */
-import { extractSchemaFromFiles } from "../src/index.js";
+import { extractSchemaFromFiles } from "@/index"
 
 async function main() {
-  const codex = await extractSchemaFromFiles(["~/.codex/sessions/**/*.jsonl"], { rootName: "CodexRollout" });
+  const codex = await extractSchemaFromFiles(["~/.codex/sessions/**/*.jsonl"], { rootName: "CodexRollout" })
   // @ts-ignore - Bun global
-  await Bun.write("examples/codex.d.ts", codex);
-  console.error("wrote examples/codex.d.ts");
+  await Bun.write("examples/codex.d.ts", codex)
+  console.error("wrote examples/codex.d.ts")
 
-  const copilot = await extractSchemaFromFiles(
-    ["~/.local/share/workspaceStorage/*/chatSessions/*.jsonl"],
-    { rootName: "CopilotChat" },
-  );
+  const copilot = await extractSchemaFromFiles(["~/.local/share/workspaceStorage/*/chatSessions/*.jsonl"], {
+    rootName: "CopilotChat",
+  })
   // @ts-ignore
-  await Bun.write("examples/copilot-chat.d.ts", copilot);
-  console.error("wrote examples/copilot-chat.d.ts");
+  await Bun.write("examples/copilot-chat.d.ts", copilot)
+  console.error("wrote examples/copilot-chat.d.ts")
 }
 
 main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+  console.error(e)
+  process.exit(1)
+})
