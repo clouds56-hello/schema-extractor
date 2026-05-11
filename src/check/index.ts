@@ -166,20 +166,17 @@ function checkValue(value: unknown, schema: Schema, report: CheckReport, path: s
         if (err === null) return null
         return `[${dispatch.key}=${JSON.stringify(dispatch.value)}] ${err}`
       }
-      // Try each variant; succeed on first match. Snapshot stats so we don't
-      // pollute counts with attempted-and-failed variants. On total failure,
-      // report the highest-scoring attempt's error rather than the first.
-      const snapshotTypes = new Map(report.typeStats)
-      const snapshotFields = new Map(report.fieldStats)
+      // Try each variant; succeed on first match. We DO NOT snapshot/restore
+      // stats around variant attempts because doing so is `O(stats_size)` per
+      // try and explodes on deeply-nested untagged unions. The cost is mildly
+      // inflated stats for failed-variant attempts; acceptable because tagged
+      // unions hit the fast path above and don't pay this cost at all.
       let best: { score: number; err: string } | null = null
       for (const v of schema.variants) {
         const err = checkValue(value, v, report, path)
         if (err === null) return null
         const score = scoreObjectMatch(value, v)
         if (best === null || score > best.score) best = { score, err }
-        // restore stats for next attempt
-        report.typeStats = new Map(snapshotTypes)
-        report.fieldStats = new Map(snapshotFields)
       }
       const reason = best ? best.err : "no variants"
       return `no union variant matched (${schema.variants.length} tries): ${reason}`

@@ -1,4 +1,5 @@
-import { runAdapters } from "./adapters/index"
+import { DEFAULT_ADAPTERS, runAdapters } from "./adapters/index"
+import type { Adapter } from "./adapters/index"
 import type { CheckReport } from "./check/index"
 import { checkRecords } from "./check/index"
 import type { ExtractorOptions } from "./config"
@@ -115,15 +116,16 @@ export async function extractSchemaFromFiles(
  * Validate JSONL records against a previously emitted .d.ts schema. Returns a
  * structured report (overall pass/fail, per-type counts, failure samples).
  *
- * NOTE: records are validated as parsed from JSONL — no adapter pipeline is
- * applied. For inputs whose committed schema was produced via a stateful
- * adapter (e.g. vscode-patch replays kind:0/1/2 records into a different
- * shape), raw-record validation will not match. See `tests/integration/check.test.ts`.
+ * For each input file the adapter chain is consulted: if any adapter has a
+ * `transform`, its materialized records are used (e.g. vscode-patch replays
+ * kind:0/1/2 into a single state object). Pass `adapters: []` to validate
+ * raw JSONL records.
  */
 export async function checkJsonlAgainstDts(
   patterns: readonly string[],
   schemaPath: string,
   rootName?: string,
+  adapters: readonly Adapter[] = DEFAULT_ADAPTERS,
 ): Promise<CheckReport> {
   const dtsSrc = await Bun.file(schemaPath).text()
   const { decls } = parseDts(dtsSrc)
@@ -140,7 +142,15 @@ export async function checkJsonlAgainstDts(
   const records: unknown[] = []
   for (const f of files) {
     const recs = await parseJsonl(openSource(f), f)
-    records.push(...recs)
+    let materialized: readonly unknown[] = recs
+    for (const a of adapters) {
+      if (!a.transform) continue
+      // Only use transform if detect would also claim this batch.
+      if (a.detect(recs) === null) continue
+      materialized = a.transform(recs)
+      break
+    }
+    records.push(...materialized)
   }
   return checkRecords(records, root)
 }

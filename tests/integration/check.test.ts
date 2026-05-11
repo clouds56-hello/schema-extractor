@@ -18,12 +18,16 @@ import { checkJsonlAgainstDts } from "@/index"
 import { findManifest, loadManifest, resolveTargetPaths } from "@/manifest"
 import { expandGlobs } from "@/input/glob"
 
-// Targets known to fail strict check today. The vscode-patch adapter consumes
-// kind:0/1/2 records and synthesizes a Schema directly without materializing
-// post-replay records, so `check` (which validates raw JSONL) cannot currently
-// see what the schema actually describes. Unblocking these requires extending
-// the Adapter interface with a `transform(records) -> records` method, which
-// is out of scope for plan v5.
+// Targets known to fail strict check today.
+//   codex: no stateful adapter (codex-rollout is a stub), so any natural
+//     drift between sessions trips the strict check.
+//   copilot-chat: vscode-patch.transform now correctly materializes the
+//     replayed state, but ONE record across the corpus exposes a real
+//     schema-fidelity bug — `progressTaskSerialized.content` has two
+//     distinct shapes ({value, uris} vs MarkdownString-shaped) and the
+//     merge pipeline collapses to the first only. Fixing requires either
+//     better union preservation in merge/passes or schema regeneration
+//     against a wider corpus. Tracked as future work.
 const KNOWN_DRIFT = new Set(["codex", "copilot-chat"])
 
 const manifestPath = findManifest(resolve(__dirname, "..", ".."))
