@@ -1,7 +1,7 @@
 import { DEFAULT_ADAPTERS, runAdapters } from "./adapters/index"
 import type { Adapter } from "./adapters/index"
 import type { CheckReport } from "./check/index"
-import { checkRecords } from "./check/index"
+import { checkRecords, mergeReport, newReport } from "./check/index"
 import type { ExtractorOptions } from "./config"
 import { resolveOptions } from "./config"
 import { dedupeDecls } from "./emit/dedupe"
@@ -20,7 +20,7 @@ import { runtime } from "./runtime"
 export type { Adapter } from "./adapters/index"
 export { codexRolloutAdapter, DEFAULT_ADAPTERS, vscodePatchAdapter } from "./adapters/index"
 export type { CheckReport } from "./check/index"
-export { checkRecords, formatReport } from "./check/index"
+export { checkRecords, formatReport, mergeReport } from "./check/index"
 export type { ExtractorOptions } from "./config"
 export type { Schema } from "./ir/types"
 export { parseDts } from "./parse-dts/index"
@@ -93,6 +93,7 @@ export async function extractSchemaFromStream(
 export async function extractSchemaFromFiles(
   patterns: readonly string[],
   opts: ExtractorOptions = {},
+  onFile?: (file: string, recordCount: number) => void,
 ): Promise<string> {
   const resolved = resolveOptions(opts)
   const prevTag = runtime.userTagKey
@@ -104,7 +105,8 @@ export async function extractSchemaFromFiles(
     for (const f of files) {
       const records = await parseJsonl(openSource(f), f)
       schema = merge(schema, runAdapters(records, resolved.adapters))
-      console.error(`[${f}] processed ${records.length} records`)
+      if (onFile) onFile(f, records.length)
+      else console.error(`[${f}] processed ${records.length} records`)
     }
     return emitDocument(schema, resolved)
   } finally {
@@ -126,6 +128,7 @@ export async function checkJsonlAgainstDts(
   schemaPath: string,
   rootName?: string,
   adapters: readonly Adapter[] = DEFAULT_ADAPTERS,
+  onFile?: (file: string, report: CheckReport) => void,
 ): Promise<CheckReport> {
   const dtsSrc = await Bun.file(schemaPath).text()
   const { decls } = parseDts(dtsSrc)
@@ -139,20 +142,21 @@ export async function checkJsonlAgainstDts(
   const root = decls[rootIdx]!.schema
   const files = expandGlobs(patterns)
   if (files.length === 0) throw new Error("check: no input files matched")
-  const records: unknown[] = []
+  const total = newReport()
   for (const f of files) {
     const recs = await parseJsonl(openSource(f), f)
     let materialized: readonly unknown[] = recs
     for (const a of adapters) {
       if (!a.transform) continue
-      // Only use transform if detect would also claim this batch.
       if (a.detect(recs) === null) continue
       materialized = a.transform(recs)
       break
     }
-    records.push(...materialized)
+    const sub = checkRecords(materialized, root)
+    if (onFile) onFile(f, sub)
+    mergeReport(total, sub)
   }
-  return checkRecords(records, root)
+  return total
 }
 
 /**

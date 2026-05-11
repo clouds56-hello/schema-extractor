@@ -20,6 +20,7 @@ interface GenArgs {
   files: string[]
   configPath: string | null
   stdin: boolean
+  quiet: boolean
 }
 
 function printRootHelp(): void {
@@ -56,6 +57,7 @@ Options:
   --hint <Scope:Name>   Add a dedup hint (repeatable). Format: "ScopePrefix:NamePrefix"
   --record-hint <Seg>   Add a record-collapse hint (repeatable)
   --multi-tag <Key>     Add a global-tag hint (repeatable)
+  -q, --quiet           Suppress per-file progress logs
   -h, --help            Show this help
 `,
   )
@@ -80,6 +82,7 @@ Options:
   --schema <path>       Path to .d.ts schema (required for explicit mode)
   --root <Name>         Which exported type to validate against (default: last)
   --detail              Also print per-field instance counts
+  -q, --quiet           Suppress per-file progress logs (only summary)
   -h, --help            Show this help
 
 Exit codes: 0 = all checks pass, 1 = at least one validation failure.
@@ -115,6 +118,7 @@ function parseGenArgs(argv: readonly string[]): GenArgs {
     files: [],
     configPath: null,
     stdin: false,
+    quiet: false,
   }
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i]!
@@ -124,6 +128,7 @@ function parseGenArgs(argv: readonly string[]): GenArgs {
     else if (x === "--name") a.name = argv[++i] ?? null
     else if (x === "--tag") a.tag = argv[++i] ?? null
     else if (x === "--no-adapters") a.noAdapters = true
+    else if (x === "-q" || x === "--quiet") a.quiet = true
     else if (x === "--hint") {
       const v = argv[++i] ?? ""
       const idx = v.indexOf(":")
@@ -161,7 +166,10 @@ function mergeOptions(targetOpts: ExtractorOptions | undefined, args: GenArgs): 
 async function buildTarget(target: Target, manifestPath: string, args: GenArgs): Promise<void> {
   const { input, output } = resolveTargetPaths(target, manifestPath)
   const opts = mergeOptions(target.options, args)
-  const ts = await extractSchemaFromFiles(input, opts)
+  const onFile = args.quiet
+    ? undefined
+    : (f: string, n: number) => console.error(`[${target.name}] [${f}] processed ${n} records`)
+  const ts = await extractSchemaFromFiles(input, opts, onFile)
   await Bun.write(output, ts)
   console.error(`[${target.name}] wrote ${output}`)
 }
@@ -202,7 +210,10 @@ async function cmdGen(argv: readonly string[]): Promise<void> {
     const webStream = Readable.toWeb(process.stdin) as unknown as ReadableStream<Uint8Array>
     ts = await extractSchemaFromStream(webStream, opts, "<stdin>")
   } else {
-    ts = await extractSchemaFromFiles(args.files, opts)
+    const onFile = args.quiet
+      ? undefined
+      : (f: string, n: number) => console.error(`[${f}] processed ${n} records`)
+    ts = await extractSchemaFromFiles(args.files, opts, onFile)
   }
 
   if (args.out) {
@@ -218,6 +229,7 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
   let rootName: string | null = null
   let detail = false
   let configPath: string | null = null
+  let quiet = false
   const files: string[] = []
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i]!
@@ -225,6 +237,7 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
     else if (x === "--root") rootName = argv[++i] ?? null
     else if (x === "--detail") detail = true
     else if (x === "--config") configPath = argv[++i] ?? null
+    else if (x === "-q" || x === "--quiet") quiet = true
     else if (x === "-h" || x === "--help") {
       printCheckHelp()
       return
@@ -232,6 +245,13 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
       console.error(`check: unknown flag ${x}`)
       process.exit(2)
     } else files.push(x)
+  }
+
+  const fileLogger = (prefix: string) => (f: string, r: import("./check/index").CheckReport) => {
+    if (quiet) return
+    const status = r.pass ? "OK" : "FAIL"
+    const reason = r.pass ? "" : ` (${r.failures[0]?.reason ?? "unknown"})`
+    process.stdout.write(`${prefix}[${f}] ${status} ${r.total - r.failed}/${r.total}${reason}\n`)
   }
 
   // Manifest mode: no --schema and no positional files.
@@ -252,7 +272,13 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
     for (const t of manifest.targets) {
       const { input, output } = resolveTargetPaths(t, mfPath)
       try {
-        const report = await checkJsonlAgainstDts(input, output, t.options?.rootName)
+        const report = await checkJsonlAgainstDts(
+          input,
+          output,
+          t.options?.rootName,
+          undefined,
+          fileLogger(`[${t.name}] `),
+        )
         const status = report.pass ? "OK" : "FAIL"
         process.stdout.write(`[${t.name}] ${status} ${report.total - report.failed}/${report.total}\n`)
         if (detail || !report.pass) process.stdout.write(formatReport(report, detail))
@@ -273,7 +299,13 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
     console.error("check: at least one input file or glob is required")
     process.exit(2)
   }
-  const report = await checkJsonlAgainstDts(files, schemaPath, rootName ?? undefined)
+  const report = await checkJsonlAgainstDts(
+    files,
+    schemaPath,
+    rootName ?? undefined,
+    undefined,
+    fileLogger(""),
+  )
   process.stdout.write(formatReport(report, detail))
   process.exit(report.pass ? 0 : 1)
 }

@@ -225,6 +225,24 @@ export function checkRecords(records: readonly unknown[], schema: Schema): Check
   return report
 }
 
+/** Aggregate `add` into `into` (mutates `into`). Failures retain global cap. */
+export function mergeReport(into: CheckReport, add: CheckReport): void {
+  into.total += add.total
+  into.failed += add.failed
+  if (!add.pass) into.pass = false
+  for (const [k, v] of add.typeStats) into.typeStats.set(k, (into.typeStats.get(k) ?? 0) + v)
+  for (const [k, v] of add.fieldStats) {
+    const cur = into.fieldStats.get(k) ?? { count: 0, types: new Set<string>() }
+    cur.count += v.count
+    for (const t of v.types) cur.types.add(t)
+    into.fieldStats.set(k, cur)
+  }
+  for (const f of add.failures) {
+    if (into.failures.length >= FAILURE_CAP) break
+    into.failures.push(f)
+  }
+}
+
 export function formatReport(report: CheckReport, detail: boolean): string {
   const lines: string[] = []
   lines.push(`${report.pass ? "OK" : "FAIL"} ${report.total - report.failed}/${report.total} records`)
