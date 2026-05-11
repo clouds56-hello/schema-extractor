@@ -564,18 +564,6 @@ export type RenderedGlobalContext_3_69a1a30d = {
   type: 3;
 };
 
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.renderedUserMessage[] -> 1 */
-export type RenderedUserMessage_1_77adb8ef = {
-  text: Path;
-  type: 1;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.renderedUserMessage[] -> 3 */
-export type RenderedUserMessage_3_93ddbdf0 = {
-  cacheType: string;
-  type: 3;
-};
-
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 21 */
 export type $mid_21_db627c2b = {
   $mid: 21;
@@ -599,153 +587,10 @@ export type Children_2_d0a357ce = {
   type: 2;
 };
 
-/**
- * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 2
- * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 2
- * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 2
- * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 2
- */
-export type Children_2_1f0854df = {
-  lineBreakBefore: boolean;
-  priority: number;
-  references?: {
-    anchor: $mid_1_9b4a5f71;
-    options: {
-      isFromTool: boolean;
-    };
-  }[];
-  text: string;
-  type: 2;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant */
-export type Props_Variant_b69781ba_2 = {
-  passPriority?: boolean;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.references[].anchor -> Variant.range[] -> Variant */
-export type Range_Type_ef06e167 = {
-  character: number;
-  line: number;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.references[].anchor -> Variant */
-export type Anchor_Type_5cbf55b8 = {
-  range: Range_Type_ef06e167[];
-  uri: $mid_1_9b4a5f71;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1 */
-export type Children_1_51b7c00c = {
-  children: Array<Children_2_1f0854df | Children_1_51b7c00c>;
-  ctor: number;
-  ctorName: string;
-  flags?: number;
-  keepWithId?: number;
-  props: Props_Variant_1c560589 | Props_Variant_b69781ba_2;
-  references: {
-    anchor: Anchor_Type_5cbf55b8;
-    options: {
-      isFromTool: boolean;
-    };
-  }[];
-  type: 1;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant */
-export type Props_Variant_d1934617_2 = {
-  passPriority: boolean;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1 */
-export type Children_1_25125fb0 = {
-  children: Array<Children_2_1f0854df | Children_1_51b7c00c>;
-  ctor: number;
-  ctorName: string;
-  flags?: number;
-  keepWithId?: number;
-  props: Props_Variant_1c560589 | Props_Variant_d1934617_2;
-  references: {
-    anchor: {
-      range: {
-        character: number;
-        line: number;
-      }[];
-      uri: $mid_1_9b4a5f71;
-    };
-    options: {
-      isFromTool: boolean;
-    };
-  }[];
-  type: 1;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant */
-export type Props_Variant_cdc3eb7f_2 = {
-  passPriority: boolean;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1 */
-export type Children_1_567e24d6 = {
-  children: Array<Children_2_1f0854df | Children_1_25125fb0>;
-  ctor: number;
-  ctorName: string;
-  flags?: number;
-  keepWithId?: number;
-  props: Props_Variant_1c560589 | Props_Variant_cdc3eb7f_2;
-  references: {
-    anchor: {
-      range: {
-        character: number;
-        line: number;
-      }[];
-      uri: $mid_1_9b4a5f71;
-    };
-    options: {
-      isFromTool: boolean;
-    };
-  }[];
-  type: 1;
-};
-
-/**
- * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.props -> Variant
- * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.props -> Variant
- * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant
- * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant
- * 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.children[] -> 1.children[] -> 1.props -> Variant
- */
-export type Props_Variant_1c560589 = {
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.props -> Variant */
+export type Props_Variant_39a77ff4 = {
   flexGrow?: number;
   priority?: number;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1.props -> Variant */
-export type Props_Variant_1c560589_2 = {
-  passPriority: boolean;
-};
-
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 1 */
-export type Children_1_69eef251 = {
-  children: Array<Children_2_1f0854df | Children_1_567e24d6>;
-  ctor: number;
-  ctorName: string;
-  flags?: number;
-  keepWithId?: number;
-  props: Props_Variant_1c560589 | Props_Variant_1c560589_2;
-  references: {
-    anchor: {
-      range: {
-        character: number;
-        line: number;
-      }[];
-      uri: $mid_1_9b4a5f71;
-    };
-    options: {
-      isFromTool: boolean;
-    };
-  }[];
-  type: 1;
 };
 
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.props -> Variant */
@@ -753,14 +598,19 @@ export type Props_Variant_39a77ff4_2 = {
   passPriority?: boolean;
 };
 
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.props -> Variant */
+export type Props_Variant_39a77ff4_3 = {
+  passPriority: boolean;
+};
+
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1 */
 export type Children_1_656bf662 = {
-  children: Array<Children_2_d0a357ce | Children_1_69eef251>;
+  children: Array<Children_2_d0a357ce | Children_1_656bf662>;
   ctor: number;
   ctorName: string;
   flags?: number;
   keepWithId?: number;
-  props: Props_Variant_1c560589 | Props_Variant_39a77ff4_2;
+  props: Props_Variant_39a77ff4 | Props_Variant_39a77ff4_2 | Props_Variant_39a77ff4_3;
   references: {
     anchor: {
       range: {
@@ -812,7 +662,7 @@ export type Metadata_Type_97e20652 = {
   codeBlocks?: never[];
   modelMessageId: Uuid;
   renderedGlobalContext?: Array<RenderedGlobalContext_1_5eba9d3a | RenderedGlobalContext_3_69a1a30d>;
-  renderedUserMessage?: Array<RenderedUserMessage_1_77adb8ef | RenderedUserMessage_3_93ddbdf0>;
+  renderedUserMessage?: Array<RenderedGlobalContext_1_5eba9d3a | RenderedGlobalContext_3_69a1a30d>;
   resolvedModel?: string;
   responseId: Uuid;
   sessionId: Uuid;
@@ -1182,7 +1032,7 @@ export type Result_Type_3a58776b = {
     }[];
     modelMessageId: Uuid;
     renderedGlobalContext?: Array<RenderedGlobalContext_1_5eba9d3a | RenderedGlobalContext_3_69a1a30d>;
-    renderedUserMessage?: Array<RenderedUserMessage_1_77adb8ef | RenderedUserMessage_3_93ddbdf0>;
+    renderedUserMessage?: Array<RenderedGlobalContext_1_5eba9d3a | RenderedGlobalContext_3_69a1a30d>;
     resolvedModel?: string;
     responseId: Uuid;
     sessionId: Uuid;
@@ -1353,7 +1203,7 @@ export type Metadata_Type_f4bd771f = {
   agentId: string;
   codeBlocks: never[];
   modelMessageId: Uuid;
-  renderedUserMessage: Array<RenderedUserMessage_1_77adb8ef | RenderedUserMessage_3_93ddbdf0>;
+  renderedUserMessage: Array<RenderedGlobalContext_1_5eba9d3a | RenderedGlobalContext_3_69a1a30d>;
   resolvedModel: string;
   responseId: Uuid;
   sessionId: Uuid;
@@ -1456,7 +1306,7 @@ export type Metadata_Variant_b5e53fa7 = {
   agentId: string;
   codeBlocks?: never[];
   modelMessageId: Uuid;
-  renderedUserMessage?: Array<RenderedUserMessage_1_77adb8ef | RenderedUserMessage_3_93ddbdf0>;
+  renderedUserMessage?: Array<RenderedGlobalContext_1_5eba9d3a | RenderedGlobalContext_3_69a1a30d>;
   resolvedModel?: string;
   responseId: Uuid;
   sessionId: Uuid;
@@ -1626,7 +1476,7 @@ export type Metadata_Variant_b5e53fa7_3 = {
   agentId: string;
   codeBlocks: never[];
   modelMessageId: Uuid;
-  renderedUserMessage: Array<RenderedUserMessage_1_77adb8ef | RenderedUserMessage_3_93ddbdf0>;
+  renderedUserMessage: Array<RenderedGlobalContext_1_5eba9d3a | RenderedGlobalContext_3_69a1a30d>;
   resolvedModel: string;
   responseId: Uuid;
   sessionId: Uuid;

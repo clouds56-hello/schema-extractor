@@ -225,17 +225,7 @@ export type Payload_Message_d31625e1 = {
     text: string;
     type: "input_text";
   }[];
-  role: "developer";
-  type: "message";
-};
-
-/** response_item.payload -> message */
-export type Payload_Message_d31625e1_2 = {
-  content: {
-    text: string;
-    type: "input_text";
-  }[];
-  role: "user";
+  role: "developer" | "user";
   type: "message";
 };
 
@@ -248,7 +238,7 @@ export type Payload_Reasoning_30b4aaaf = {
 };
 
 /** response_item.payload -> message */
-export type Payload_Message_d31625e1_3 = {
+export type Payload_Message_d31625e1_2 = {
   content: {
     text: string;
     type: "output_text";
@@ -291,7 +281,7 @@ export type Payload_CustomToolCallOutput_8edc46ca = {
 
 /** response_item */
 export type ResponseItem_8b8f7924 = {
-  payload: Payload_Message_d31625e1 | Payload_Message_d31625e1_2 | Payload_Reasoning_30b4aaaf | Payload_Message_d31625e1_3 | Payload_FunctionCall_dcd8c4bc | Payload_FunctionCallOutput_d57ef584 | Payload_CustomToolCall_62ba07c8 | Payload_CustomToolCallOutput_8edc46ca;
+  payload: Payload_Message_d31625e1 | Payload_Reasoning_30b4aaaf | Payload_Message_d31625e1_2 | Payload_FunctionCall_dcd8c4bc | Payload_FunctionCallOutput_d57ef584 | Payload_CustomToolCall_62ba07c8 | Payload_CustomToolCallOutput_8edc46ca;
   timestamp: IsoDate;
   type: "response_item";
 };

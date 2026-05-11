@@ -7,6 +7,8 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- `structural-dedupe` pipeline pass (`src/passes/structural-dedupe.ts`): collapses shape-equivalent hoisted objects — most visibly the unrolled-recursive `Children_1_*` chains in `examples/copilot-chat.d.ts`, where 5 distinct decls fold into a single self-recursive type. Iterates with `rewriteIR` between passes (cap 16) and uses shallow per-prop merging (`merge()` for prim×prim, reference + `dryRender`-equivalence dedupe for unions) to avoid traversing cyclic IR.
+- Golden case `tests/golden/cases/11-recursive-chain-collapse.case.ts` exercising the unrolled-recursive collapse end-to-end.
 - `--quiet` / `-q` flag for `gen` and `check` to suppress per-file progress logs.
 - Per-file progress lines for `check`: `[file] OK N/M` or `[file] FAIL k/M (reason)`.
 - `mergeReport(into, add)` in `src/check/index.ts` for aggregating per-file `CheckReport`s while preserving the global 20-failure cap.

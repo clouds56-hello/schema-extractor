@@ -7,6 +7,7 @@ import { applyInlineSameKeys } from "./inline-samekeys"
 import { applyInlineUnify } from "./inline-unify"
 import { applyRecordify } from "./recordify"
 import { rewriteIR } from "./rewrite"
+import { applyStructuralDedupe } from "./structural-dedupe"
 import { applyTagHints } from "./tag-hints"
 
 export interface PipelineOptions {
@@ -64,7 +65,22 @@ export function runPipeline(root: Schema, opts: PipelineOptions): PipelineResult
   for (const c of sameKeysRes.newHoists) if (c.k === "object") hoistedSet.add(c)
   for (const c of tagHintsRes.newHoists) if (c.k === "object") hoistedSet.add(c)
 
+  // Phase 2: structural dedupe — collapses unrolled-recursive chains and other
+  // structurally-equivalent hoisted decls that earlier per-pass heuristics
+  // missed. The pass internally iterates and rewrites; we still apply its
+  // returned canonical map once more here to catch references in collections
+  // outside the IR tree (hoistedSet/hoistNames).
+  const structRes = applyStructuralDedupe(root, rootName, hoistedSet)
+  root = structRes.root
+  root = rewriteIR(root, structRes.canonicalFor, new Set())
+  for (const [k] of structRes.canonicalFor) hoistedSet.delete(k)
+
   const hoistNames = new Map<Schema, string>([...sameKeysRes.hoistNames, ...tagHintsRes.hoistNames])
+  for (const [k, v] of structRes.canonicalFor) {
+    const name = hoistNames.get(k)
+    if (name && !hoistNames.has(v)) hoistNames.set(v, name)
+    hoistNames.delete(k)
+  }
 
   return { root, hoistedSet, hoistNames }
 }

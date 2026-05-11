@@ -90,8 +90,9 @@ scripts/bench.ts          # walks manifest, times gen+check, prints throughput
 5. tag-hints              — MULTI_TAG_HINTS ($mid, …)
 6. inline-unify           — inline ↔ hoisted, then inline-only
 7. inline-samekeys        — untagged identical key sets
-8. (render)               — collectHoists + emit named decls
-9. dedupeDecls            — structural identical-body collapse
+8. structural-dedupe      — collapse shape-equivalent hoisted decls (esp. unrolled-recursive chains)
+9. (render)               — collectHoists + emit named decls
+10. dedupeDecls           — structural identical-body collapse
 ```
 Reordering breaks fixtures. If you must change the order, update the pipeline test under `tests/golden/cases/` first.
 
