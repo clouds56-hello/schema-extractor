@@ -4,7 +4,10 @@ name: Release
 #
 # Required repo secret:
 #   NPM_TOKEN — npm granular access token with publish permission for
-#               the `schema-extractor` package.
+#               the `schema-extractor` package. Set this on the `npm`
+#               GitHub Environment (Settings → Environments → npm) so the
+#               token is only exposed to jobs that pass the environment's
+#               protection rules.
 #
 # Workflow uses npm's `--provenance` flag, which requires `id-token: write`
 # permission so GitHub OIDC can sign the package.
@@ -21,6 +24,7 @@ jobs:
       startsWith(github.event.workflow_run.head_branch, 'v') &&
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    environment: npm
     permissions:
       contents: read
       id-token: write
