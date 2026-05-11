@@ -95,6 +95,14 @@ Reordering breaks fixtures. If you must change the order, update the pipeline te
 - No mutation of input IRs across module boundaries except inside `passes/` (where the doc strings explicitly mention canonical-rewriting). `merge()` and `from-value()` allocate fresh IRs.
 - **Tooling**: `bun run format` (write), `bun run lint` (check only), `bun run check` (format + lint + safe fixes).
 
+### Commits
+- **Conventional Commits**: `<type>(optional-scope)!: <subject>`. Enforced by the `commit-msg` hook in `.githooks/` (active via `core.hooksPath`).
+- **Allowed types**: `feat` (new behavior), `fix` (bug), `chore` (tooling/deps), `test`, `docs`, `refactor` (no behavior change), `style` (formatting only), `perf`, `build`, `ci`, `revert`.
+- **Scope** is optional and lowercase: `feat(adapters): …`, `fix(ir): …`. Use a top-level `src/` folder name or a high-level concept.
+- **Subject**: imperative mood, lowercase, ≤ 72 chars, no trailing period.
+- **Body** (optional): blank line, then wrapped ~72 cols. Explain *why*, not *what*.
+- **Authorship**: use the global `git config user.name` / `user.email` — never override per-commit.
+
 ### Testing
 - **Run**: `bun test`
 - **Update goldens**: `UPDATE_GOLDEN=1 bun test`
