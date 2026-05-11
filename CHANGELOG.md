@@ -6,8 +6,7 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Fixed
-- `expandGlobs` no longer throws `ENOENT` when a glob's prefix directory is absent (e.g. `~/.codex/sessions/**/*.jsonl` on a fresh CI runner). Missing prefixes now produce the same "no files matched" warning + empty result that the integration tests rely on for skip-on-no-matches behaviour. Adds `tests/unit/glob.test.ts`.
+## [0.1.1] - 2026-05-11
 
 ### Added
 - `structural-dedupe` pipeline pass (`src/passes/structural-dedupe.ts`): collapses shape-equivalent hoisted objects — most visibly the unrolled-recursive `Children_1_*` chains in `examples/copilot-chat.d.ts`, where 5 distinct decls fold into a single self-recursive type. Iterates with `rewriteIR` between passes (cap 16) and uses shallow per-prop merging (`merge()` for prim×prim, reference + `dryRender`-equivalence dedupe for unions) to avoid traversing cyclic IR.
@@ -33,6 +32,7 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 - `check` union dispatch dropped the per-variant snapshot/restore of stats Maps; uses `pickTagDispatch` fast path for tag-discriminated objects and best-attempt error messaging otherwise. Turns O(stats_size × union_depth) into O(1) per try; full 65-file copilot-chat strict check now finishes in ~7s (previously hung past 120s).
 
 ### Fixed
+- `expandGlobs` no longer throws `ENOENT` when a glob's prefix directory is absent (e.g. `~/.codex/sessions/**/*.jsonl` on a fresh CI runner). Missing prefixes now produce the same "no files matched" warning + empty result that the integration tests rely on for skip-on-no-matches behaviour. Adds `tests/unit/glob.test.ts`.
 - `examples/copilot-chat.d.ts` regenerated with the restored `Content_Variant_… | Content_Variant_…_2` union for `progressTaskSerialized.content`.
 - `tests/integration/check.test.ts` `KNOWN_DRIFT` reduced to `["codex"]` — copilot-chat now passes strict validation end-to-end.
 
