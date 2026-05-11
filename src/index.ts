@@ -1,4 +1,6 @@
 import { runAdapters } from "./adapters/index"
+import type { CheckReport } from "./check/index"
+import { checkRecords } from "./check/index"
 import type { ExtractorOptions } from "./config"
 import { resolveOptions } from "./config"
 import { dedupeDecls } from "./emit/dedupe"
@@ -16,8 +18,11 @@ import { runtime } from "./runtime"
 
 export type { Adapter } from "./adapters/index"
 export { codexRolloutAdapter, DEFAULT_ADAPTERS, vscodePatchAdapter } from "./adapters/index"
+export type { CheckReport } from "./check/index"
+export { checkRecords, formatReport } from "./check/index"
 export type { ExtractorOptions } from "./config"
 export type { Schema } from "./ir/types"
+export { parseDts } from "./parse-dts/index"
 
 /** Run the full pipeline on an in-memory IR and emit a TypeScript document. */
 function emitDocument(root: Schema, opts: ReturnType<typeof resolveOptions>): string {
@@ -104,6 +109,35 @@ export async function extractSchemaFromFiles(
   } finally {
     runtime.userTagKey = prevTag
   }
+}
+
+/**
+ * Validate JSONL records against a previously emitted .d.ts schema. Returns a
+ * structured report (overall pass/fail, per-type counts, failure samples).
+ */
+export async function checkJsonlAgainstDts(
+  patterns: readonly string[],
+  schemaPath: string,
+  rootName?: string,
+): Promise<CheckReport> {
+  const dtsSrc = await Bun.file(schemaPath).text()
+  const { decls } = parseDts(dtsSrc)
+  if (decls.length === 0) throw new Error(`check: no declarations in ${schemaPath}`)
+  let rootIdx = decls.length - 1
+  if (rootName) {
+    const i = decls.findIndex((d) => d.name === rootName)
+    if (i >= 0) rootIdx = i
+    else throw new Error(`check: --root "${rootName}" not found in ${schemaPath}`)
+  }
+  const root = decls[rootIdx]!.schema
+  const files = expandGlobs(patterns)
+  if (files.length === 0) throw new Error("check: no input files matched")
+  const records: unknown[] = []
+  for (const f of files) {
+    const recs = await parseJsonl(openSource(f), f)
+    records.push(...recs)
+  }
+  return checkRecords(records, root)
 }
 
 /**

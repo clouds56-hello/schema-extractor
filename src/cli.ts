@@ -1,5 +1,12 @@
 import type { ExtractorOptions } from "./config"
-import { DEFAULT_ADAPTERS, extractSchemaFromFiles, extractSchemaFromStream, simplifyDts } from "./index"
+import {
+  checkJsonlAgainstDts,
+  DEFAULT_ADAPTERS,
+  extractSchemaFromFiles,
+  extractSchemaFromStream,
+  formatReport,
+  simplifyDts,
+} from "./index"
 
 interface GenArgs {
   out: string | null
@@ -146,9 +153,35 @@ async function cmdGen(argv: readonly string[]): Promise<void> {
   }
 }
 
-async function cmdCheck(_argv: readonly string[]): Promise<void> {
-  console.error("check: not yet implemented")
-  process.exit(2)
+async function cmdCheck(argv: readonly string[]): Promise<void> {
+  let schemaPath: string | null = null
+  let rootName: string | null = null
+  let detail = false
+  const files: string[] = []
+  for (let i = 0; i < argv.length; i++) {
+    const x = argv[i]!
+    if (x === "--schema") schemaPath = argv[++i] ?? null
+    else if (x === "--root") rootName = argv[++i] ?? null
+    else if (x === "--detail") detail = true
+    else if (x === "-h" || x === "--help") {
+      printCheckHelp()
+      return
+    } else if (x.startsWith("--")) {
+      console.error(`check: unknown flag ${x}`)
+      process.exit(2)
+    } else files.push(x)
+  }
+  if (!schemaPath) {
+    console.error("check: --schema <path> is required")
+    process.exit(2)
+  }
+  if (files.length === 0) {
+    console.error("check: at least one input file or glob is required")
+    process.exit(2)
+  }
+  const report = await checkJsonlAgainstDts(files, schemaPath, rootName ?? undefined)
+  process.stdout.write(formatReport(report, detail))
+  process.exit(report.pass ? 0 : 1)
 }
 
 async function cmdSimplify(argv: readonly string[]): Promise<void> {
