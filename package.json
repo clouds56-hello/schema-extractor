@@ -23,7 +23,8 @@
     "typecheck": "bunx tsc --noEmit",
     "format": "biome format --write .",
     "lint": "biome lint .",
-    "check": "biome check --write ."
+    "check": "biome check --write .",
+    "ci": "bun run typecheck && bun run lint && bun test"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
