@@ -6,6 +6,9 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- `expandGlobs` no longer throws `ENOENT` when a glob's prefix directory is absent (e.g. `~/.codex/sessions/**/*.jsonl` on a fresh CI runner). Missing prefixes now produce the same "no files matched" warning + empty result that the integration tests rely on for skip-on-no-matches behaviour. Adds `tests/unit/glob.test.ts`.
+
 ### Added
 - `structural-dedupe` pipeline pass (`src/passes/structural-dedupe.ts`): collapses shape-equivalent hoisted objects — most visibly the unrolled-recursive `Children_1_*` chains in `examples/copilot-chat.d.ts`, where 5 distinct decls fold into a single self-recursive type. Iterates with `rewriteIR` between passes (cap 16) and uses shallow per-prop merging (`merge()` for prim×prim, reference + `dryRender`-equivalence dedupe for unions) to avoid traversing cyclic IR.
 - Golden case `tests/golden/cases/11-recursive-chain-collapse.case.ts` exercising the unrolled-recursive collapse end-to-end.
