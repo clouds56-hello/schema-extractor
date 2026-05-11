@@ -9,7 +9,7 @@
     },
     {
       "name": "copilot-chat",
-      "input": "~/.local/share/workspaceStorage/*/chatSessions/*.jsonl",
+      "input": "~/.config/Code/User/workspaceStorage/*/chatSessions/*.jsonl",
       "output": "examples/copilot-chat.d.ts",
       "options": { "rootName": "CopilotChat" }
     }

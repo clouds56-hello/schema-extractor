@@ -11,7 +11,7 @@ const cases = [
   },
   {
     name: "copilot-chat",
-    glob: "~/.local/share/workspaceStorage/*/chatSessions/*.jsonl",
+    glob: "~/.config/Code/User/workspaceStorage/*/chatSessions/*.jsonl",
     options: { rootName: "CopilotChat" },
     expected: "examples/copilot-chat.d.ts",
   },

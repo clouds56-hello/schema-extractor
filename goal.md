@@ -4,7 +4,7 @@
 Given a stream of JSON or JSONL records (potentially huge, optionally gzipped, possibly representing a VS Code-style patch log), produce a single TypeScript declaration file that captures the observed schema with high fidelity and good readability.
 
 ## Primary use cases
-1. **Reverse-engineering opaque session formats** — e.g. `~/.codex/sessions/**/*.jsonl`, `~/.local/share/workspaceStorage/**/chatSessions/*.jsonl`. Drop in a directory, get a `.d.ts`.
+1. **Reverse-engineering opaque session formats** — e.g. `~/.codex/sessions/**/*.jsonl`, `~/.config/Code/User/workspaceStorage/**/chatSessions/*.jsonl`. Drop in a directory, get a `.d.ts`.
 2. **Schema-drift regression** — re-run after vendor updates and diff the generated `.d.ts` to spot new variants.
 3. **Programmatic exploration** — call the API from another script that wants to inspect or transform the IR before emitting.
 

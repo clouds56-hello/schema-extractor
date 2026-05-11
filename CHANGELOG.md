@@ -12,6 +12,10 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 - `package.json` now points `main` / `module` / `types` / `exports` / `bin` at `dist/`, drops `src` and `bin` from `files` (replaced by `dist`).
 - CI runs on `v*` tag pushes too so the release workflow has a `workflow_run` trigger to depend on.
 
+### Changed
+- `package.json` `repository` / `homepage` / `bugs` URLs updated to match the actual git remote (`github.com/clouds56-hello/schema-extractor`).
+- Copilot-chat sample input path moved from `~/.local/share/workspaceStorage/*/chatSessions/*.jsonl` to the canonical VSCode location `~/.config/Code/User/workspaceStorage/*/chatSessions/*.jsonl` in `schema-extractor.json`, the integration test, and the docs. Re-run `bun run regen:examples` once that path is populated to refresh `examples/copilot-chat.d.ts`.
+
 ## [0.1.1] - 2026-05-11
 
 ### Added

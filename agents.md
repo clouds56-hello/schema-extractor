@@ -154,14 +154,14 @@ Activated repo-locally with `git config core.hooksPath .githooks` (already set i
 - `pre-commit` — runs `bun run typecheck` + `bun run lint`. Bypass with `--no-verify` only when fixing the hook itself.
 
 ### CI (`.github/workflows/ci.yml`)
-Runs on push/PR to `main`: checkout → setup-bun (latest) → `bun install --frozen-lockfile` → typecheck → lint → test. Integration tests against `~/.codex/sessions` and `~/.local/share/workspaceStorage` self-skip on CI runners (no input dirs).
+Runs on push/PR to `main`: checkout → setup-bun (latest) → `bun install --frozen-lockfile` → typecheck → lint → test. Integration tests against `~/.codex/sessions` and `~/.config/Code/User/workspaceStorage` self-skip on CI runners (no input dirs).
 
 ### Testing
 - **Run**: `bun test`
 - **Update goldens**: `UPDATE_GOLDEN=1 bun test`
 - **Add a regression case**: drop `tests/golden/cases/<name>/input.jsonl` (and optionally `options.json`); run with `UPDATE_GOLDEN=1` once; commit the produced `expected.d.ts`.
 - **Unit tests** for any pure helper live in `tests/unit/<topic>.test.ts`.
-- **E2E** tests against the user's real `~/.codex/sessions` and `~/.local/share/workspaceStorage` are opt-in and self-skip when those directories are absent.
+- **E2E** tests against the user's real `~/.codex/sessions` and `~/.config/Code/User/workspaceStorage` are opt-in and self-skip when those directories are absent.
 
 ### Examples
 - `bun run regen:examples` rebuilds `examples/codex.d.ts` and `examples/copilot-chat.d.ts` from the live sample directories. Commit the result.
