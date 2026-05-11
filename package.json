@@ -6,11 +6,11 @@
   "author": "Clouds Flowing <clouds.flowing@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anomalyco/schema-extractor.git"
+    "url": "git+https://github.com/clouds56-hello/schema-extractor.git"
   },
-  "homepage": "https://github.com/anomalyco/schema-extractor#readme",
+  "homepage": "https://github.com/clouds56-hello/schema-extractor#readme",
   "bugs": {
-    "url": "https://github.com/anomalyco/schema-extractor/issues"
+    "url": "https://github.com/clouds56-hello/schema-extractor/issues"
   },
   "keywords": [
     "schema",
