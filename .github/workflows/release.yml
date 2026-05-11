@@ -2,15 +2,23 @@ name: Release
 
 # Publishes the package to npm when a `v*` tag is pushed.
 #
-# Required repo secret:
-#   NPM_TOKEN — npm granular access token with publish permission for
-#               the `schema-extractor` package. Set this on the `npm`
-#               GitHub Environment (Settings → Environments → npm) so the
-#               token is only exposed to jobs that pass the environment's
-#               protection rules.
+# Authentication: npm Trusted Publishing (OIDC). No `NPM_TOKEN` secret
+# required. Before this workflow can publish, a Trusted Publisher must be
+# configured on npmjs.com for the `schema-extractor` package:
 #
-# The publish job uses npm's `--provenance` flag, which requires
-# `id-token: write` permission so GitHub OIDC can sign the package.
+#   npmjs.com → Packages → schema-extractor → Settings → Publishing access
+#   → Add trusted publisher:
+#       Publisher:           GitHub Actions
+#       Organization / user: clouds56-hello
+#       Repository:          schema-extractor
+#       Workflow filename:   release.yml
+#       Environment name:    npm
+#
+# The publish job runs under the `npm` GitHub Environment so npm's trusted
+# publisher config matches and any environment protection rules apply.
+# `id-token: write` permission lets GitHub mint the OIDC token that the
+# npm CLI exchanges for a short-lived publish credential. `--provenance`
+# emits a signed attestation alongside the publish.
 
 on:
   push:
@@ -46,7 +54,7 @@ jobs:
         with:
           bun-version: latest
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
@@ -70,6 +78,4 @@ jobs:
         run: bun run build
 
       - name: Publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance

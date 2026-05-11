@@ -6,6 +6,9 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Release workflow switched to npm Trusted Publishing (OIDC). The `publish` job no longer uses an `NPM_TOKEN` secret; it requests a GitHub OIDC token via `id-token: write`, and the npm CLI (bundled with `actions/setup-node@v6`) exchanges it for a short-lived publish credential. Provenance is still attested. Operators must configure a Trusted Publisher on npmjs.com for the `schema-extractor` package (publisher: GitHub Actions, repo: `clouds56-hello/schema-extractor`, workflow: `release.yml`, environment: `npm`) before the workflow can publish.
+
 ## [0.1.2] - 2026-05-11
 
 ### Added
