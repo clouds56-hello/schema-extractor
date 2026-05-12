@@ -6,6 +6,27 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-05-13
+
+### Added
+- Explicit `Phase` framework in `src/passes/pipeline.ts`: each pass declares `name`, `loop`, `prunesHoists`, `emitsHoists`. `PIPELINE_PHASE_NAMES` and `PIPELINE_LOOP_PHASE_NAMES` exports lock the canonical order so accidental reshuffles trip a fast unit test before the goldens diff.
+- `--trace-pipeline` CLI flag + `setPipelineTrace()` runtime toggle: per-phase timings + rewrite counts logged to stderr, including iteration markers across the convergence loop.
+- Convergence loop in `runPipeline`: after the initial sweep the loop-marked phases (`inline-unify`, `inline-samekeys`, `inline-equivalent`, `structural-dedupe`) re-run until quiescent, bound by `pipeline.convergence-cap` (default 4); on cap-hit a warning is printed to stderr.
+- `inline-equivalent` pass (`src/passes/inline-equivalent.ts`): collapses two object IRs that render to byte-identical TypeScript (via `dryRender`) into a single canonical reference, even when their internal IR shapes differ.
+- `hoist-shared` pass (`src/passes/hoist-shared.ts`): any object IR with ≥`hoist-shared.min-refs` parent references and ≥`hoist-shared.min-keys` keys becomes a named decl, eliminating duplicate inline bodies in emitted output. Runs after `structural-dedupe` as a final mop-up; pure name-addition so not loop-eligible.
+- Naming-plugin system in `src/plugins/`: `NamePlugin` interface with optional `match(ir, ctx)` and `contribute()` hooks; `apply-plugins` phase walks the IR and renames matched objects, optionally hoisting them. `collectContributions(plugins)` merges multi-tag/dedup/record hints + parameter overrides across the chain (set-dedup for hints, last-wins for parameters).
+- Bundled `vscodePlugin`: maps the VSCode `$mid` discriminator table to semantic names (`VscodeUri`, `VscodeLanguageModelTextPart`, etc.) and contributes `$mid` as a multi-tag hint, copilot-chat dedup hints, and the `UserSelectedTools` record hint. `--no-plugins` CLI flag for explicit disable.
+- Per-target plugin selection in the manifest via `options.plugins: string[]` (resolved against `BUILTIN_PLUGINS` by `resolvePluginNames`); JSON schema validates names against the known built-in enum. Demo manifest now sets `codex` to `plugins: []` and `copilot-chat` to `plugins: ["vscode"]`.
+- Configurable pipeline parameters (`src/parameters.ts`): single flat namespace `<pass>.<param>` (kebab-case) with `DEFAULT_PARAMETERS`, validating `mergeParameters`, and `parseParameterPair` for CLI. Five tunables: `hoist-shared.min-keys` (2), `hoist-shared.min-refs` (2), `pipeline.convergence-cap` (4), `structural-dedupe.max-passes` (16), `check.failure-cap` (20). Precedence: CLI `--param key=value` (repeatable on `gen`/`check`/`simplify`) > manifest `options.parameters` > plugin `contribute().parameters` > defaults.
+- `CheckOptions { failureCap }` threaded through `checkRecords`, `mergeReport`, and `checkJsonlAgainstDts` so the failure cap is no longer a hard-coded `20`.
+- `agents.md` § Parameters table documenting all tunables and the precedence order.
+
+### Changed
+- Manifest plugin semantics: omitting `target.options.plugins` now means *no plugins* (opt-in), not "use defaults". CLI mode with no manifest still falls back to `DEFAULT_PLUGINS`. **Migration**: existing manifests that relied on implicit defaults must add `"plugins": ["vscode"]` (or whatever they want) explicitly.
+- `applyHoistShared(root, hoistedSet, params)` and `applyStructuralDedupe(root, rootName, extra, maxPasses)` signatures now take their thresholds explicitly instead of module-level constants; pipeline wrappers source them from the resolved `Parameters`.
+- `collectContributions` validates plugin parameter contributions via `mergeParameters` and rewraps errors with the offending plugin's name.
+- `examples/copilot-chat.d.ts` regenerated: 4 anonymous `$mid_N_<hash>` decls renamed to semantic `Vscode*` names by the bundled plugin; `examples/codex.d.ts` unchanged (its target opts out).
+
 ## [0.1.3] - 2026-05-11
 
 ### Changed
