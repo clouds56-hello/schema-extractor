@@ -34,6 +34,7 @@ src/
 │   ├── field-tag.ts          # field-scoped (parentField, tagKey, tagValue) consolidation
 │   ├── inline-unify.ts       # phase 1c: inline ↔ hoisted unification
 │   ├── inline-samekeys.ts    # phase 1d: untagged same-keys consolidation
+│   ├── inline-equivalent.ts  # phase 1e: byte-identical inline-object dedup
 │   ├── rewrite.ts            # rewriteIR helper (apply canonicalFor map)
 │   └── pipeline.ts           # composes the phases in the documented order
 │
@@ -90,9 +91,10 @@ scripts/bench.ts          # walks manifest, times gen+check, prints throughput
 5. tag-hints              — MULTI_TAG_HINTS ($mid, …) global consolidation
 6. inline-unify           — inline ↔ hoisted, then inline-only           [loop]
 7. inline-samekeys        — untagged identical key sets                  [loop]
-8. structural-dedupe      — collapse shape-equivalent hoisted decls      [loop]
-9. (render)               — collectHoists + emit named decls
-10. dedupeDecls           — structural identical-body collapse
+8. inline-equivalent      — collapse byte-identical inline objects       [loop]
+9. structural-dedupe      — collapse shape-equivalent hoisted decls      [loop]
+10. (render)              — collectHoists + emit named decls
+11. dedupeDecls           — structural identical-body collapse
 ```
 After the linear sweep, phases marked `[loop]` re-run as a convergence cycle
 until none reports work (cap: 4 iterations). Cap-exhaustion logs a warning

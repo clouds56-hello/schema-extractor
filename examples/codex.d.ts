@@ -88,11 +88,7 @@ export type Payload_TokenCount_0b236b38 = {
     plan_type: string | null;
     primary: Primary_Type_aec06b40;
     rate_limit_reached_type: null;
-    secondary: {
-      resets_at: number;
-      used_percent: number;
-      window_minutes: number;
-    };
+    secondary: Primary_Type_aec06b40;
   };
   type: "token_count";
 };
@@ -286,43 +282,43 @@ export type ResponseItem_8b8f7924 = {
   type: "response_item";
 };
 
-/** turn_context.payload.file_system_sandbox_policy.entries[].path -> special.value -> root */
-export type Value_Root_247a87ca = {
+/** turn_context.payload.file_system_sandbox_policy.entries[] -> Variant.path -> special.value -> root */
+export type Value_Root_98f0885c = {
   kind: "root";
 };
 
-/** turn_context.payload.file_system_sandbox_policy.entries[].path -> special.value -> project_roots */
-export type Value_ProjectRoots_5e5fa8ed = {
+/** turn_context.payload.file_system_sandbox_policy.entries[] -> Variant.path -> special.value -> project_roots */
+export type Value_ProjectRoots_0a6aa61d = {
   kind: "project_roots";
   subpath?: string;
 };
 
-/** turn_context.payload.file_system_sandbox_policy.entries[].path -> special.value -> slash_tmp */
-export type Value_SlashTmp_876957b0 = {
+/** turn_context.payload.file_system_sandbox_policy.entries[] -> Variant.path -> special.value -> slash_tmp */
+export type Value_SlashTmp_4492ca0a = {
   kind: "slash_tmp";
 };
 
-/** turn_context.payload.file_system_sandbox_policy.entries[].path -> special.value -> tmpdir */
-export type Value_Tmpdir_8c4bad16 = {
+/** turn_context.payload.file_system_sandbox_policy.entries[] -> Variant.path -> special.value -> tmpdir */
+export type Value_Tmpdir_dab32788 = {
   kind: "tmpdir";
 };
 
-/** turn_context.payload.file_system_sandbox_policy.entries[].path -> special */
-export type Path_Special_a180aa3f = {
+/** turn_context.payload.file_system_sandbox_policy.entries[] -> Variant.path -> special */
+export type Path_Special_8eae0cfe = {
   type: "special";
-  value: Value_Root_247a87ca | Value_ProjectRoots_5e5fa8ed | Value_SlashTmp_876957b0 | Value_Tmpdir_8c4bad16;
+  value: Value_Root_98f0885c | Value_ProjectRoots_0a6aa61d | Value_SlashTmp_4492ca0a | Value_Tmpdir_dab32788;
 };
 
-/** turn_context.payload.file_system_sandbox_policy.entries[].path -> path */
-export type Path_Path_1e73cb58 = {
+/** turn_context.payload.file_system_sandbox_policy.entries[] -> Variant.path -> path */
+export type Path_Path_c7c02709 = {
   path: Path;
   type: "path";
 };
 
-/** turn_context.payload.permission_profile.file_system.entries[] -> Variant */
+/** turn_context.payload.file_system_sandbox_policy.entries[] -> Variant */
 export type Entries_Type_b768ea2a = {
   access: string;
-  path: Path_Special_a180aa3f | Path_Path_1e73cb58;
+  path: Path_Special_8eae0cfe | Path_Path_c7c02709;
 };
 
 /** turn_context */
@@ -341,10 +337,7 @@ export type TurnContext_0f2a906e = {
     cwd: Path;
     effort: string;
     file_system_sandbox_policy: {
-      entries: {
-        access: string;
-        path: Path_Special_a180aa3f | Path_Path_1e73cb58;
-      }[];
+      entries: Entries_Type_b768ea2a[];
       kind: "restricted";
     };
     model: string;

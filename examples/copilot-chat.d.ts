@@ -21,6 +21,12 @@ export type Capabilities_Type_024bea5e = {
   vision: boolean;
 };
 
+/** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant.extension -> Variant */
+export type ExtensionId_Type_5b6f8a91 = {
+  _lower: string;
+  value: string;
+};
+
 /** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant.isDefaultForLocation -> Variant */
 export type IsDefaultForLocation_Type_b17d32ba = {
   editor: boolean;
@@ -52,10 +58,7 @@ export type Metadata_Variant_a2f3ae0f = {
       };
     };
   };
-  extension: {
-    _lower: string;
-    value: string;
-  };
+  extension: ExtensionId_Type_5b6f8a91;
   family: string;
   id: string;
   isDefaultForLocation: IsDefaultForLocation_Type_b17d32ba;
@@ -73,15 +76,8 @@ export type Metadata_Variant_a2f3ae0f = {
 
 /** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant */
 export type Metadata_Variant_a2f3ae0f_2 = {
-  auth: {
-    accountLabel: string;
-    providerLabel: string;
-  };
-  capabilities: {
-    agentMode: boolean;
-    toolCalling: boolean;
-    vision: boolean;
-  };
+  auth: Auth_Type_0db0f468;
+  capabilities: Capabilities_Type_024bea5e;
   configurationSchema?: {
     properties: {
       reasoningEffort: {
@@ -95,20 +91,14 @@ export type Metadata_Variant_a2f3ae0f_2 = {
       };
     };
   };
-  extension: {
-    _lower: string;
-    value: string;
-  };
+  extension: ExtensionId_Type_5b6f8a91;
   family: string;
   id: string;
   isDefaultForLocation: IsDefaultForLocation_Type_b17d32ba;
   isUserSelectable: boolean;
   maxInputTokens: number;
   maxOutputTokens: number;
-  modelPickerCategory: {
-    label: string;
-    order: number;
-  };
+  modelPickerCategory: ModelPickerCategory_Type_e766cacf;
   multiplier: string;
   multiplierNumeric: number;
   name: string;
@@ -119,20 +109,10 @@ export type Metadata_Variant_a2f3ae0f_2 = {
 
 /** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant */
 export type Metadata_Variant_a2f3ae0f_3 = {
-  auth: {
-    accountLabel: string;
-    providerLabel: string;
-  };
-  capabilities: {
-    agentMode: boolean;
-    toolCalling: boolean;
-    vision: boolean;
-  };
+  auth: Auth_Type_0db0f468;
+  capabilities: Capabilities_Type_024bea5e;
   detail: string;
-  extension: {
-    _lower: string;
-    value: string;
-  };
+  extension: ExtensionId_Type_5b6f8a91;
   family: string;
   id: string;
   isDefaultForLocation: {
@@ -141,10 +121,7 @@ export type Metadata_Variant_a2f3ae0f_3 = {
   isUserSelectable: boolean;
   maxInputTokens: number;
   maxOutputTokens: number;
-  modelPickerCategory: {
-    label: string;
-    order: number;
-  };
+  modelPickerCategory: ModelPickerCategory_Type_e766cacf;
   name: string;
   tooltip: Blob;
   vendor: string;
@@ -185,10 +162,13 @@ export type InputState_Type_325379cc = {
   selections: Selections_Type_cb741af8[];
 };
 
-/** 0.v -> Variant.requests[].agent -> Variant.extensionId -> Variant */
-export type ExtensionId_Type_5b6f8a91 = {
-  _lower: string;
-  value: string;
+/** 0.v -> Variant.requests[].agent -> Variant.metadata -> Variant */
+export type Metadata_Type_3e2f0323 = {
+  hasFollowups: boolean;
+  supportIssueReporting: boolean;
+  themeIcon: {
+    id: string;
+  };
 };
 
 /** 0.v -> Variant.requests[].agent -> Variant.slashCommands[] -> Variant.disambiguation[] -> Variant */
@@ -232,13 +212,7 @@ export type Agent_Type_dc9bd4a7 = {
   id: string;
   isDefault: boolean;
   locations: string[];
-  metadata: {
-    hasFollowups: boolean;
-    supportIssueReporting: boolean;
-    themeIcon: {
-      id: string;
-    };
-  };
+  metadata: Metadata_Type_3e2f0323;
   modes: string[];
   name: string;
   publisherDisplayName: string;
@@ -254,24 +228,21 @@ export type Range_Type_c56f3a3b = {
   startLineNumber: number;
 };
 
+/** 0.v -> Variant.requests[].message -> Variant.parts[].range -> Variant */
+export type Range_Type_e984d3e7 = {
+  endExclusive: number;
+  start: number;
+};
+
 /** 0.v -> Variant.requests[].message -> Variant */
 export type Message_Type_cb5b622e = {
   parts: {
     editorRange: Range_Type_c56f3a3b;
     kind: "text";
-    range: {
-      endExclusive: number;
-      start: number;
-    };
+    range: Range_Type_e984d3e7;
     text: string;
   }[];
   text: Path;
-};
-
-/** 0.v -> Variant.requests[].modeInfo.modeInstructions.toolReferences[].range -> Variant */
-export type Range_Type_e984d3e7 = {
-  endExclusive: number;
-  start: number;
 };
 
 /** 0.v -> Variant.requests[].modeInfo.modeInstructions.uri -> Variant */
@@ -403,30 +374,6 @@ export type ResultDetails_Variant_db7cfc41 = {
   uri: $mid_1_9b4a5f71;
 };
 
-/** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.resultDetails -> Variant[] -> Variant */
-export type ResultDetails_Variant_db7cfc41_2 = {
-  range: Range_Type_c56f3a3b;
-  uri: $mid_1_9b4a5f71;
-};
-
-/** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.resultDetails -> Variant[] -> Variant */
-export type ResultDetails_Variant_db7cfc41_3 = {
-  range: Range_Type_c56f3a3b;
-  uri: $mid_1_9b4a5f71;
-};
-
-/** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.resultDetails -> Variant[] -> Variant */
-export type ResultDetails_Variant_db7cfc41_4 = {
-  range: Range_Type_c56f3a3b;
-  uri: $mid_1_9b4a5f71;
-};
-
-/** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.resultDetails -> Variant[] -> Variant */
-export type ResultDetails_Variant_db7cfc41_5 = {
-  range: Range_Type_c56f3a3b;
-  uri: $mid_1_9b4a5f71;
-};
-
 /** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.source -> mcp */
 export type Source_Mcp_72c5f656 = {
   collectionId: Path;
@@ -532,7 +479,7 @@ export type Response_ToolInvocationSerialized_8dd43a27 = {
   resultDetails?: ResultDetails_Variant_6a3ac424 | Array<ResultDetails_Variant_db7cfc41 | $mid_1_9b4a5f71> | {
     range: Range_Type_c56f3a3b;
     uri: $mid_1_9b4a5f71;
-  }[] | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41_2> | never[] | $mid_1_9b4a5f71[] | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41_3> | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41_4> | Array<ResultDetails_Variant_db7cfc41_5 | $mid_1_9b4a5f71>;
+  }[] | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41> | never[] | $mid_1_9b4a5f71[];
   source: Source_Mcp_72c5f656 | Source_Internal_44ce46f1;
   subAgentInvocationId?: string;
   toolCallId: string;
@@ -551,15 +498,9 @@ export type InlineReference_12_ea363bfb = {
   name: string;
 };
 
-/** 0.v -> Variant.requests[].response[] -> inlineReference.inlineReference -> Variant */
-export type InlineReference_Variant_a7b55b7c = {
-  range: Range_Type_c56f3a3b;
-  uri: $mid_1_9b4a5f71;
-};
-
 /** 0.v -> Variant.requests[].response[] -> inlineReference */
 export type Response_InlineReference_732e3fa8 = {
-  inlineReference: $mid_1_9b4a5f71 | InlineReference_12_ea363bfb | InlineReference_Variant_a7b55b7c;
+  inlineReference: $mid_1_9b4a5f71 | InlineReference_12_ea363bfb | ResultDetails_Variant_db7cfc41;
   kind: "inlineReference";
   name?: string;
   resolveId?: Uuid;
@@ -611,17 +552,15 @@ export type Props_Variant_39a77ff4_2 = {
   passPriority?: boolean;
 };
 
-/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.props -> Variant */
-export type Props_Variant_39a77ff4_3 = {
-  passPriority: boolean;
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.references[].anchor -> Variant.range[] -> Variant */
+export type Range_Type_ef06e167 = {
+  character: number;
+  line: number;
 };
 
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.references[].anchor -> Variant */
 export type Anchor_Type_5cbf55b8 = {
-  range: {
-    character: number;
-    line: number;
-  }[];
+  range: Range_Type_ef06e167[];
   uri: $mid_1_9b4a5f71;
 };
 
@@ -632,7 +571,7 @@ export type Children_1_656bf662 = {
   ctorName: string;
   flags?: number;
   keepWithId?: number;
-  props: Props_Variant_39a77ff4 | Props_Variant_39a77ff4_2 | Props_Variant_39a77ff4_3;
+  props: Props_Variant_39a77ff4 | Props_Variant_39a77ff4_2;
   references: {
     anchor: Anchor_Type_5cbf55b8;
     options: {
@@ -813,29 +752,16 @@ export type Value_Variant_a02d0894 = {
 
 /** Variant.inputState.selectedModel.metadata -> Variant */
 export type Metadata_Variant_17d09d78 = {
-  auth: {
-    accountLabel: string;
-    providerLabel: string;
-  };
-  capabilities: {
-    agentMode: boolean;
-    toolCalling: boolean;
-    vision: boolean;
-  };
-  extension: {
-    _lower: string;
-    value: string;
-  };
+  auth: Auth_Type_0db0f468;
+  capabilities: Capabilities_Type_024bea5e;
+  extension: ExtensionId_Type_5b6f8a91;
   family: string;
   id: string;
   isDefaultForLocation: IsDefaultForLocation_Type_b17d32ba;
   isUserSelectable: boolean;
   maxInputTokens: number;
   maxOutputTokens: number;
-  modelPickerCategory: {
-    label: string;
-    order: number;
-  };
+  modelPickerCategory: ModelPickerCategory_Type_e766cacf;
   multiplier: string;
   multiplierNumeric: number;
   name: string;
@@ -852,20 +778,14 @@ export type Parts_Prompt_3932bda1 = {
   editorRange: Range_Type_c56f3a3b;
   kind: "prompt";
   name: string;
-  range: {
-    endExclusive: number;
-    start: number;
-  };
+  range: Range_Type_e984d3e7;
 };
 
 /** Variant.requests[] -> Variant.message.parts[] -> text */
 export type Parts_Text_83865028 = {
   editorRange: Range_Type_c56f3a3b;
   kind: "text";
-  range: {
-    endExclusive: number;
-    start: number;
-  };
+  range: Range_Type_e984d3e7;
   text: string;
 };
 
@@ -938,11 +858,7 @@ export type Questions_MultiSelect_29db1e88 = {
   defaultValue: string[];
   id: Uuid;
   message: string;
-  options: {
-    id: string;
-    label: string;
-    value: string;
-  }[];
+  options: Options_Type_46c52020[];
   title: string;
   type: "multiSelect";
 };
@@ -1073,10 +989,7 @@ export type Result_Type_3a58776b = {
       toolInputRetry: number;
     }[];
   };
-  timings?: {
-    firstProgress: number;
-    totalElapsed: number;
-  };
+  timings?: Timings_Type_bfe18f74;
 };
 
 /** Variant.requests[] -> Variant.variableData.variables[] -> promptFile */
@@ -1220,18 +1133,7 @@ export type Requests_Variant_af50ec9b_2 = {
   }[];
   elapsedMs: number;
   followups: never[];
-  message: {
-    parts: {
-      editorRange: Range_Type_c56f3a3b;
-      kind: "text";
-      range: {
-        endExclusive: number;
-        start: number;
-      };
-      text: string;
-    }[];
-    text: Path;
-  };
+  message: Message_Type_cb5b622e;
   modeInfo: {
     isBuiltin: boolean;
     kind: "agent";
@@ -1256,10 +1158,7 @@ export type Requests_Variant_af50ec9b_2 = {
     permissionLevel: string;
   };
   modelId: Path;
-  modelState: {
-    completedAt: number;
-    value: number;
-  };
+  modelState: ModelState_Type_32b12971;
   requestId: string;
   response: Array<Response_McpServersStarting_898eb3e4 | Response_Thinking_b518728e | Response_Variant_780d654e | Response_ToolInvocationSerialized_8dd43a27 | Response_TextEditGroup_303ba707 | Response_InlineReference_732e3fa8 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5>;
   responseId: string;
@@ -1267,10 +1166,7 @@ export type Requests_Variant_af50ec9b_2 = {
   result: {
     details: string;
     metadata: Metadata_Type_f4bd771f;
-    timings: {
-      firstProgress: number;
-      totalElapsed: number;
-    };
+    timings: Timings_Type_bfe18f74;
   };
   timeSpentWaiting: number;
   timestamp: number;
@@ -1293,10 +1189,7 @@ export type Parts_Agent_262332f1 = {
   agent: Agent_Type_dc9bd4a7;
   editorRange: Range_Type_c56f3a3b;
   kind: "agent";
-  range: {
-    endExclusive: number;
-    start: number;
-  };
+  range: Range_Type_e984d3e7;
 };
 
 /** Variant.requests[] -> Variant.result.metadata -> Variant */
@@ -1318,11 +1211,7 @@ export type Metadata_Variant_b5e53fa7 = {
       text: Blob;
     };
     timestamp: number;
-    toolCalls: {
-      arguments: Path;
-      id: VscodeCallId;
-      name: string;
-    }[];
+    toolCalls: ToolCalls_Type_d37e2af8[];
     toolInputRetry: number;
   }[];
 };
@@ -1394,22 +1283,14 @@ export type Requests_Variant_af50ec9b_3 = {
     details: string;
     errorDetails?: {
       code: string;
-      confirmationButtons: {
-        data: {
-          copilotContinueOnError: boolean;
-        };
-        label: string;
-      }[];
+      confirmationButtons: ConfirmationButtons_Type_03f034ae[];
       isRateLimited: boolean;
       level: number;
       message: Blob;
       responseIsIncomplete: boolean;
     };
     metadata: Metadata_Variant_b5e53fa7 | Metadata_Variant_b5e53fa7_2;
-    timings: {
-      firstProgress: number;
-      totalElapsed: number;
-    };
+    timings: Timings_Type_bfe18f74;
   };
   timeSpentWaiting: number;
   timestamp: number;
@@ -1514,10 +1395,7 @@ export type Requests_Variant_af50ec9b_4 = {
     parts: {
       editorRange: Range_Type_c56f3a3b;
       kind: "text";
-      range: {
-        endExclusive: number;
-        start: number;
-      };
+      range: Range_Type_e984d3e7;
       text: string;
     }[];
     text: string;
@@ -1563,10 +1441,7 @@ export type Requests_Variant_af50ec9b_4 = {
       responseIsIncomplete: boolean;
     };
     metadata: Metadata_Type_97e20652 | Metadata_Variant_b5e53fa7_3;
-    timings: {
-      firstProgress: number;
-      totalElapsed: number;
-    };
+    timings: Timings_Type_bfe18f74;
   };
   shouldBeRemovedOnSend?: {
     requestId: string;

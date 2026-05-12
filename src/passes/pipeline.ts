@@ -4,6 +4,7 @@ import { runtime } from "@/runtime"
 import { applyAutoRecursive } from "./auto-recursive"
 import { applyFieldTagConsolidation } from "./field-tag"
 import { applyHintsOnIR } from "./hint-dedup"
+import { applyInlineEquivalent } from "./inline-equivalent"
 import { applyInlineSameKeys } from "./inline-samekeys"
 import { applyInlineUnify } from "./inline-unify"
 import { applyRecordify } from "./recordify"
@@ -105,6 +106,17 @@ const PHASES: readonly Phase[] = [
     },
   },
   {
+    // Mop-up after inline-samekeys: collapse byte-identical inline objects
+    // (typically small untagged shapes the same-keys policy gates rejected).
+    // Pure ref-dedup; canon prefers a hoisted member when one exists so we
+    // don't demote a named decl back to inline. Driver injects hoistedSet
+    // via runInlineEquivalent below.
+    name: "inline-equivalent",
+    prunesHoists: true,
+    loop: true,
+    run: (root) => applyInlineEquivalent(root, new Set()),
+  },
+  {
     // Structural-dedupe is special: it returns a fresh `root` after iterating
     // internally. We still apply its `canonicalFor` once more in the driver to
     // catch references in collections outside the IR tree (hoistedSet,
@@ -203,7 +215,9 @@ function runPhase(phase: Phase, opts: PipelineOptions, state: DriverState, iter:
   const res =
     phase.name === "structural-dedupe"
       ? runStructuralDedupe(state.root, opts, state.hoistedSet)
-      : phase.run(state.root, opts)
+      : phase.name === "inline-equivalent"
+        ? runInlineEquivalent(state.root, state.hoistedSet)
+        : phase.run(state.root, opts)
 
   const rootSwapped = res.root !== undefined && res.root !== state.root
   if (res.root !== undefined) state.root = res.root
@@ -252,6 +266,11 @@ function runPhase(phase: Phase, opts: PipelineOptions, state: DriverState, iter:
 function runStructuralDedupe(root: Schema, opts: PipelineOptions, extraHoisted: Iterable<Schema>): PhaseResult {
   const r = applyStructuralDedupe(root, opts.rootName, extraHoisted)
   return { canonicalFor: r.canonicalFor, root: r.root }
+}
+
+function runInlineEquivalent(root: Schema, hoistedSet: ReadonlySet<Schema>): PhaseResult {
+  const r = applyInlineEquivalent(root, hoistedSet)
+  return { canonicalFor: r.canonicalFor }
 }
 
 function emitTrace(trace: readonly TraceEntry[]): void {
