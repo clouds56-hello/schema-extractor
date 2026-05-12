@@ -8,6 +8,33 @@ export { vscodePlugin }
 export const DEFAULT_PLUGINS: readonly NamePlugin[] = [vscodePlugin]
 
 /**
+ * Registry of built-in plugins keyed by `NamePlugin.name`. Used by the
+ * manifest loader to resolve `options.plugins: string[]` into actual plugin
+ * objects. External plugin loading (npm packages, file paths) is a future
+ * extension; for now only registered names are accepted.
+ */
+export const BUILTIN_PLUGINS: Readonly<Record<string, NamePlugin>> = {
+  [vscodePlugin.name]: vscodePlugin,
+}
+
+/**
+ * Resolve a list of plugin names to plugin objects. Throws on unknown names
+ * with a message listing the available built-ins.
+ */
+export function resolvePluginNames(names: readonly string[]): readonly NamePlugin[] {
+  const out: NamePlugin[] = []
+  for (const n of names) {
+    const p = BUILTIN_PLUGINS[n]
+    if (!p) {
+      const known = Object.keys(BUILTIN_PLUGINS).join(", ") || "(none)"
+      throw new Error(`unknown plugin "${n}". Known built-ins: ${known}`)
+    }
+    out.push(p)
+  }
+  return out
+}
+
+/**
  * Merge contributions from a plugin chain into a single accumulated record.
  * Order is preserved; duplicates are de-duplicated key-wise (multiTagHints,
  * recordHints by string identity; dedupHints by `${scope}\x00${name}`).

@@ -5,13 +5,13 @@
       "name": "codex",
       "input": "~/.codex/sessions/**/*.jsonl",
       "output": "examples/codex.d.ts",
-      "options": { "rootName": "CodexRollout" }
+      "options": { "rootName": "CodexRollout", "plugins": [] }
     },
     {
       "name": "copilot-chat",
       "input": "~/.config/Code/User/workspaceStorage/*/chatSessions/*.jsonl",
       "output": "examples/copilot-chat.d.ts",
-      "options": { "rootName": "CopilotChat" }
+      "options": { "rootName": "CopilotChat", "plugins": ["vscode"] }
     }
   ]
 }

@@ -44,6 +44,36 @@ describe("parseManifest", () => {
   test("rejects invalid JSON", () => {
     expect(() => parseManifest("not json")).toThrow(/JSON/)
   })
+
+  test("options.plugins omitted → empty plugin list (opt-in semantics)", () => {
+    const m = parseManifest(JSON.stringify({ targets: [{ name: "a", input: "x", output: "y" }] }))
+    expect(m.targets[0]!.options?.plugins).toEqual([])
+  })
+
+  test("options.plugins resolves built-in names", () => {
+    const m = parseManifest(
+      JSON.stringify({ targets: [{ name: "a", input: "x", output: "y", options: { plugins: ["vscode"] } }] }),
+    )
+    const plugins = m.targets[0]!.options?.plugins
+    expect(plugins).toHaveLength(1)
+    expect(plugins?.[0]?.name).toBe("vscode")
+  })
+
+  test("options.plugins rejects unknown name with descriptive error", () => {
+    expect(() =>
+      parseManifest(
+        JSON.stringify({ targets: [{ name: "a", input: "x", output: "y", options: { plugins: ["nope"] } }] }),
+      ),
+    ).toThrow(/unknown plugin "nope"/)
+  })
+
+  test("options.plugins rejects non-string-array", () => {
+    expect(() =>
+      parseManifest(
+        JSON.stringify({ targets: [{ name: "a", input: "x", output: "y", options: { plugins: [1, 2] } }] }),
+      ),
+    ).toThrow(/plugins.*string/)
+  })
 })
 
 describe("findManifest + loadManifest", () => {

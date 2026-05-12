@@ -126,6 +126,8 @@ the golden cases under `tests/golden/cases/` first.
 ### Manifest (`schema-extractor.json`)
 Schema in `schema-extractor.schema.json` (draft-07). Walk-up discovery from CWD via `findManifest()` in `src/manifest.ts`. Loader: `loadManifest(path)`. Path resolver: `resolveTargetPaths(target, manifestPath)` returns absolute `{ input, output }`. Input globs may use `~` and `**`. Manifest precedence: CLI flags > `target.options` > built-in defaults (handled by `mergeOptions` in `src/cli.ts`).
 
+**Per-target plugins** (`options.plugins: string[]`): names are resolved against `BUILTIN_PLUGINS` in `src/plugins/index.ts` via `resolvePluginNames`. **Opt-in semantics**: omitting `options.plugins` means *no plugins*, not "use defaults". Each target must explicitly list `["vscode"]` (or whatever) to enable plugin behavior. Unknown names throw at parse time. CLI mode (no manifest) still falls back to `DEFAULT_PLUGINS`.
+
 ### Validation (`check/`)
 - `checkRecords(records, schema)` — produces `CheckReport { pass, total, failed, typeStats, fieldStats, failures }`.
 - `mergeReport(into, add)` — aggregates per-file reports while preserving the global 20-failure cap (used by `checkJsonlAgainstDts` to support per-file callbacks).

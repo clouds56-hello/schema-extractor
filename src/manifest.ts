@@ -8,6 +8,7 @@
 import { existsSync, readFileSync } from "node:fs"
 import { dirname, isAbsolute, resolve } from "node:path"
 import type { ExtractorOptions } from "./config"
+import { resolvePluginNames } from "./plugins/index"
 
 export interface Target {
   /** Stable identifier for logging / test naming. */
@@ -47,6 +48,39 @@ function isStringArray(v: unknown): v is readonly string[] {
   return Array.isArray(v) && v.every((x) => typeof x === "string")
 }
 
+/**
+ * Translate the raw JSON `options` blob into ExtractorOptions, resolving
+ * `plugins: string[]` (manifest shape) into `NamePlugin[]` (runtime shape).
+ *
+ * Manifest semantics: omitting `options.plugins` means "no plugins" — this is
+ * intentional, so each target opts in explicitly. Use `["vscode"]` to get
+ * the bundled plugin chain.
+ */
+function parseOptions(raw: Record<string, unknown>, idx: number): ExtractorOptions {
+  const opts: ExtractorOptions = {}
+  // Pass-through scalar fields
+  for (const k of ["rootName", "userTagKey", "header"] as const) {
+    if (raw[k] !== undefined) (opts as Record<string, unknown>)[k] = raw[k]
+  }
+  for (const k of ["dedupHints", "recordHints", "multiTagHints", "adapters"] as const) {
+    if (raw[k] !== undefined) (opts as Record<string, unknown>)[k] = raw[k]
+  }
+  if (raw.plugins !== undefined) {
+    if (!isStringArray(raw.plugins)) {
+      throw new Error(`manifest.targets[${idx}].options.plugins: expected string[]`)
+    }
+    try {
+      opts.plugins = resolvePluginNames(raw.plugins)
+    } catch (e) {
+      throw new Error(`manifest.targets[${idx}].options.plugins: ${(e as Error).message}`)
+    }
+  } else {
+    // Explicit: omitted means no plugins. Targets must opt in.
+    opts.plugins = []
+  }
+  return opts
+}
+
 function validateTarget(t: unknown, idx: number): Target {
   if (typeof t !== "object" || t === null) {
     throw new Error(`manifest.targets[${idx}]: expected object`)
@@ -69,7 +103,9 @@ function validateTarget(t: unknown, idx: number): Target {
     input: o.input as string | readonly string[],
     output: o.output,
   }
-  if (o.options !== undefined) target.options = o.options as ExtractorOptions
+  // Always parseOptions so the "omitted = empty plugins" rule applies even
+  // when no other options were provided.
+  target.options = parseOptions((o.options as Record<string, unknown>) ?? {}, idx)
   return target
 }
 

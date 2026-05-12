@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import type { Schema } from "@/ir/types"
-import { collectContributions, DEFAULT_PLUGINS, vscodePlugin } from "@/plugins/index"
+import { collectContributions, DEFAULT_PLUGINS, resolvePluginNames, vscodePlugin } from "@/plugins/index"
 
 function obj(props: Record<string, Schema>): Schema & { k: "object" } {
   const m = new Map<string, { schema: Schema; present: number }>()
@@ -53,5 +53,25 @@ describe("vscode plugin", () => {
   test("collectContributions deduplicates across plugins", () => {
     const c = collectContributions([vscodePlugin, vscodePlugin])
     expect(c.multiTagHints.filter((t) => t === "$mid")).toHaveLength(1)
+  })
+})
+
+describe("resolvePluginNames", () => {
+  test("resolves known names in order", () => {
+    const r = resolvePluginNames(["vscode"])
+    expect(r).toHaveLength(1)
+    expect(r[0]).toBe(vscodePlugin)
+  })
+
+  test("empty list → empty result", () => {
+    expect(resolvePluginNames([])).toEqual([])
+  })
+
+  test("throws on unknown name", () => {
+    expect(() => resolvePluginNames(["bogus"])).toThrow(/unknown plugin "bogus"/)
+  })
+
+  test("error lists known built-ins", () => {
+    expect(() => resolvePluginNames(["bogus"])).toThrow(/vscode/)
   })
 })
