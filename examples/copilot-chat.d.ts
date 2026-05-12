@@ -8,6 +8,12 @@ export type Path = string;
 export type Base64 = string;
 export type Blob = string;
 
+/** 0.v -> Variant.inputState -> Variant.mode -> Variant */
+export type Mode_Shared_9c64ec1d = {
+  id: string;
+  kind: "agent";
+};
+
 /** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant.auth -> Variant */
 export type Auth_Type_0db0f468 = {
   accountLabel: string;
@@ -42,7 +48,7 @@ export type ModelPickerCategory_Type_e766cacf = {
 };
 
 /** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant */
-export type Metadata_Variant_a2f3ae0f = {
+export type Metadata_Shared_21259231 = {
   auth: Auth_Type_0db0f468;
   capabilities: Capabilities_Type_024bea5e;
   configurationSchema: {
@@ -75,7 +81,7 @@ export type Metadata_Variant_a2f3ae0f = {
 };
 
 /** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant */
-export type Metadata_Variant_a2f3ae0f_2 = {
+export type Metadata_Shared_13a393ca = {
   auth: Auth_Type_0db0f468;
   capabilities: Capabilities_Type_024bea5e;
   configurationSchema?: {
@@ -108,7 +114,7 @@ export type Metadata_Variant_a2f3ae0f_2 = {
 };
 
 /** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant */
-export type Metadata_Variant_a2f3ae0f_3 = {
+export type Metadata_Shared_8a419cc0 = {
   auth: Auth_Type_0db0f468;
   capabilities: Capabilities_Type_024bea5e;
   detail: string;
@@ -131,7 +137,7 @@ export type Metadata_Variant_a2f3ae0f_3 = {
 /** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant */
 export type SelectedModel_Type_71b7f8b2 = {
   identifier: Path;
-  metadata: Metadata_Variant_a2f3ae0f | Metadata_Variant_a2f3ae0f_2 | Metadata_Variant_a2f3ae0f_3;
+  metadata: Metadata_Shared_21259231 | Metadata_Shared_13a393ca | Metadata_Shared_8a419cc0;
 };
 
 /** 0.v -> Variant.inputState -> Variant.selections[] -> Variant */
@@ -153,10 +159,7 @@ export type InputState_Type_325379cc = {
     chatDynamicVariableModel: never[];
   };
   inputText: string;
-  mode: {
-    id: string;
-    kind: "agent";
-  };
+  mode: Mode_Shared_9c64ec1d;
   permissionLevel?: string;
   selectedModel?: SelectedModel_Type_71b7f8b2;
   selections: Selections_Type_cb741af8[];
@@ -245,7 +248,7 @@ export type Message_Type_cb5b622e = {
   text: Path;
 };
 
-/** 0.v -> Variant.requests[].modeInfo.modeInstructions.uri -> Variant */
+/** 0.v -> Variant.requests[].modeInfo -> Variant.modeInstructions.uri -> Variant */
 export type $mid_1_9b4a5f71 = {
   $mid: 1;
   _sep?: number;
@@ -256,6 +259,31 @@ export type $mid_1_9b4a5f71 = {
   path: Path;
   query?: string;
   scheme: string;
+};
+
+/** 0.v -> Variant.requests[].modeInfo -> Variant */
+export type ModeInfo_Shared_2e0ade1d = {
+  isBuiltin: boolean;
+  kind: "agent";
+  modeId: string;
+  modeInstructions?: {
+    content: Path;
+    isBuiltin: boolean;
+    name: string;
+    toolReferences: {
+      fullName?: string;
+      icon?: {
+        id: string;
+      };
+      id: string;
+      kind: "tool";
+      name: string;
+      range?: Range_Type_e984d3e7;
+    }[];
+    uri: $mid_1_9b4a5f71;
+  };
+  modeName: string;
+  permissionLevel: string;
 };
 
 /** 0.v -> Variant.requests[].modelState -> Variant */
@@ -271,7 +299,7 @@ export type Response_McpServersStarting_898eb3e4 = {
 };
 
 /** 0.v -> Variant.requests[].response[] -> progressTaskSerialized.content -> Variant */
-export type Content_Variant_d597fb5c = {
+export type Content_Shared_2c91468d = {
   isTrusted: boolean;
   supportAlertSyntax: boolean;
   supportHtml: boolean;
@@ -280,14 +308,14 @@ export type Content_Variant_d597fb5c = {
 };
 
 /** 0.v -> Variant.requests[].response[] -> progressTaskSerialized.content -> Variant */
-export type Content_Variant_d597fb5c_2 = {
+export type Content_Variant_d597fb5c = {
   uris: Record<string, unknown>;
   value: string;
 };
 
 /** 0.v -> Variant.requests[].response[] -> progressTaskSerialized */
 export type Response_ProgressTaskSerialized_132e6db2 = {
-  content: Content_Variant_d597fb5c | Content_Variant_d597fb5c_2;
+  content: Content_Shared_2c91468d | Content_Variant_d597fb5c;
   kind: "progressTaskSerialized";
   progress: never[];
 };
@@ -313,7 +341,7 @@ export type Response_Thinking_b518728e = {
 };
 
 /** 0.v -> Variant.requests[].response[] -> Variant */
-export type Response_Variant_780d654e = {
+export type Response_Shared_103f7d62 = {
   baseUri?: $mid_1_9b4a5f71;
   supportAlertSyntax?: boolean;
   supportHtml: boolean;
@@ -323,7 +351,7 @@ export type Response_Variant_780d654e = {
 };
 
 /** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.invocationMessage -> Variant */
-export type InvocationMessage_Variant_ce876462 = {
+export type InvocationMessage_Shared_6bd878a0 = {
   supportAlertSyntax: boolean;
   supportHtml: boolean;
   supportThemeIcons: boolean;
@@ -369,7 +397,7 @@ export type ResultDetails_Variant_6a3ac424 = {
 };
 
 /** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.resultDetails -> Variant[] -> Variant */
-export type ResultDetails_Variant_db7cfc41 = {
+export type ResultDetails_Shared_99f08392 = {
   range: Range_Type_c56f3a3b;
   uri: $mid_1_9b4a5f71;
 };
@@ -468,18 +496,15 @@ export type ToolSpecificData_TodoList_992240ca = {
 /** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized */
 export type Response_ToolInvocationSerialized_8dd43a27 = {
   generatedTitle?: string;
-  invocationMessage: InvocationMessage_Variant_ce876462 | string | Content_Variant_d597fb5c | Path;
+  invocationMessage: InvocationMessage_Shared_6bd878a0 | string | Content_Shared_2c91468d | Path;
   isAttachedToThinking?: boolean;
   isComplete: boolean;
   isConfirmed?: IsConfirmed_1_c95cb60c | IsConfirmed_4_101ec371 | IsConfirmed_0_6b61abae | IsConfirmed_5_9efe7d77 | IsConfirmed_3_b8417d0c;
   kind: "toolInvocationSerialized";
   originMessage?: string;
-  pastTenseMessage?: InvocationMessage_Variant_ce876462 | Content_Variant_d597fb5c | string | Path;
+  pastTenseMessage?: InvocationMessage_Shared_6bd878a0 | Content_Shared_2c91468d | string | Path;
   presentation?: string;
-  resultDetails?: ResultDetails_Variant_6a3ac424 | Array<ResultDetails_Variant_db7cfc41 | $mid_1_9b4a5f71> | {
-    range: Range_Type_c56f3a3b;
-    uri: $mid_1_9b4a5f71;
-  }[] | Array<$mid_1_9b4a5f71 | ResultDetails_Variant_db7cfc41> | never[] | $mid_1_9b4a5f71[];
+  resultDetails?: ResultDetails_Variant_6a3ac424 | Array<ResultDetails_Shared_99f08392 | $mid_1_9b4a5f71> | ResultDetails_Shared_99f08392[] | Array<$mid_1_9b4a5f71 | ResultDetails_Shared_99f08392> | never[] | $mid_1_9b4a5f71[];
   source: Source_Mcp_72c5f656 | Source_Internal_44ce46f1;
   subAgentInvocationId?: string;
   toolCallId: string;
@@ -491,16 +516,13 @@ export type Response_ToolInvocationSerialized_8dd43a27 = {
 export type InlineReference_12_ea363bfb = {
   containerName: string;
   kind: 12;
-  location: {
-    range: Range_Type_c56f3a3b;
-    uri: $mid_1_9b4a5f71;
-  };
+  location: ResultDetails_Shared_99f08392;
   name: string;
 };
 
 /** 0.v -> Variant.requests[].response[] -> inlineReference */
 export type Response_InlineReference_732e3fa8 = {
-  inlineReference: $mid_1_9b4a5f71 | InlineReference_12_ea363bfb | ResultDetails_Variant_db7cfc41;
+  inlineReference: $mid_1_9b4a5f71 | InlineReference_12_ea363bfb | ResultDetails_Shared_99f08392;
   kind: "inlineReference";
   name?: string;
   resolveId?: Uuid;
@@ -680,33 +702,11 @@ export type V_Type_7a9d56bb = {
     contentReferences: never[];
     followups: never[];
     message: Message_Type_cb5b622e;
-    modeInfo: {
-      isBuiltin: boolean;
-      kind: "agent";
-      modeId: string;
-      modeInstructions?: {
-        content: Path;
-        isBuiltin: boolean;
-        name: string;
-        toolReferences: {
-          fullName?: string;
-          icon?: {
-            id: string;
-          };
-          id: string;
-          kind: "tool";
-          name: string;
-          range?: Range_Type_e984d3e7;
-        }[];
-        uri: $mid_1_9b4a5f71;
-      };
-      modeName: string;
-      permissionLevel: string;
-    };
+    modeInfo: ModeInfo_Shared_2e0ade1d;
     modelId: Path;
     modelState: ModelState_Type_32b12971;
     requestId: Uuid;
-    response: Array<Response_McpServersStarting_898eb3e4 | Response_ProgressTaskSerialized_132e6db2 | Response_Thinking_b518728e | Response_Variant_780d654e | Response_ToolInvocationSerialized_8dd43a27 | Response_InlineReference_732e3fa8>;
+    response: Array<Response_McpServersStarting_898eb3e4 | Response_ProgressTaskSerialized_132e6db2 | Response_Thinking_b518728e | Response_Shared_103f7d62 | Response_ToolInvocationSerialized_8dd43a27 | Response_InlineReference_732e3fa8>;
     responseId: Uuid;
     responseMarkdownInfo: never[];
     result: Result_Type_53c47f49;
@@ -773,6 +773,12 @@ export type Metadata_Variant_17d09d78 = {
   version: string;
 };
 
+/** Variant.requests[] -> Variant.contentReferences[] -> Variant */
+export type ContentReferences_Shared_cc0d07a6 = {
+  kind: "reference";
+  reference: $mid_1_9b4a5f71;
+};
+
 /** Variant.requests[] -> Variant.message.parts[] -> prompt */
 export type Parts_Prompt_3932bda1 = {
   editorRange: Range_Type_c56f3a3b;
@@ -787,6 +793,12 @@ export type Parts_Text_83865028 = {
   kind: "text";
   range: Range_Type_e984d3e7;
   text: string;
+};
+
+/** Variant.requests[] -> Variant.modelState -> Variant */
+export type ModelState_Shared_b0e9af1d = {
+  completedAt?: number;
+  value: number;
 };
 
 /** Variant.requests[] -> Variant.response[] -> undoStop */
@@ -894,22 +906,10 @@ export type Response_WorkspaceEdit_adc32944 = {
 export type Response_ElicitationSerialized_39ff6b15 = {
   isHidden: boolean;
   kind: "elicitationSerialized";
-  message: {
-    isTrusted: boolean;
-    supportAlertSyntax: boolean;
-    supportHtml: boolean;
-    supportThemeIcons: boolean;
-    value: string;
-  };
+  message: Content_Shared_2c91468d;
   state: string;
   subtitle: string;
-  title: {
-    isTrusted: boolean;
-    supportAlertSyntax: boolean;
-    supportHtml: boolean;
-    supportThemeIcons: boolean;
-    value: string;
-  };
+  title: Content_Shared_2c91468d;
 };
 
 /** Variant.requests[] -> Variant.result -> Variant.errorDetails -> Variant.confirmationButtons[] -> Variant */
@@ -921,7 +921,7 @@ export type ConfirmationButtons_Type_03f034ae = {
 };
 
 /** Variant.requests[] -> Variant.result -> Variant.errorDetails -> Variant */
-export type ErrorDetails_Variant_f34fccbe = {
+export type ErrorDetails_Shared_e36342b6 = {
   code: string;
   confirmationButtons: ConfirmationButtons_Type_03f034ae[];
   message: string;
@@ -929,7 +929,7 @@ export type ErrorDetails_Variant_f34fccbe = {
 };
 
 /** Variant.requests[] -> Variant.result -> Variant.errorDetails -> Variant */
-export type ErrorDetails_Variant_f34fccbe_2 = {
+export type ErrorDetails_Variant_f34fccbe = {
   isQuotaExceeded: boolean;
   isRateLimited: boolean;
   message: string;
@@ -957,7 +957,7 @@ export type Thinking_Variant_fb475f55_2 = {
 /** Variant.requests[] -> Variant.result -> Variant */
 export type Result_Type_3a58776b = {
   details?: string;
-  errorDetails?: ErrorDetails_Variant_f34fccbe | ErrorDetails_Variant_f34fccbe_2;
+  errorDetails?: ErrorDetails_Shared_e36342b6 | ErrorDetails_Variant_f34fccbe;
   metadata?: {
     agentId: string;
     cacheKey?: Url;
@@ -1050,10 +1050,7 @@ export type Requests_Variant_af50ec9b = {
   agent: Agent_Type_dc9bd4a7;
   codeCitations: never[];
   completionTokens?: number;
-  contentReferences: {
-    kind: "reference";
-    reference: $mid_1_9b4a5f71;
-  }[];
+  contentReferences: ContentReferences_Shared_cc0d07a6[];
   editedFileEvents?: {
     eventKind: number;
     uri: $mid_1_9b4a5f71;
@@ -1065,36 +1062,11 @@ export type Requests_Variant_af50ec9b = {
     parts: Array<Parts_Prompt_3932bda1 | Parts_Text_83865028>;
     text: string;
   };
-  modeInfo?: {
-    isBuiltin: boolean;
-    kind: "agent";
-    modeId: string;
-    modeInstructions?: {
-      content: Path;
-      isBuiltin: boolean;
-      name: string;
-      toolReferences: {
-        fullName?: string;
-        icon?: {
-          id: string;
-        };
-        id: string;
-        kind: "tool";
-        name: string;
-        range?: Range_Type_e984d3e7;
-      }[];
-      uri: $mid_1_9b4a5f71;
-    };
-    modeName: string;
-    permissionLevel: string;
-  };
+  modeInfo?: ModeInfo_Shared_2e0ade1d;
   modelId: Path;
-  modelState: {
-    completedAt?: number;
-    value: number;
-  };
+  modelState: ModelState_Shared_b0e9af1d;
   requestId: string;
-  response: Array<Response_McpServersStarting_898eb3e4 | Response_ProgressTaskSerialized_132e6db2 | Response_Thinking_b518728e | Response_Variant_780d654e | Response_InlineReference_732e3fa8 | Response_ToolInvocationSerialized_8dd43a27 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5 | Response_TextEditGroup_303ba707 | Response_QuestionCarousel_0f3e4276 | Response_WorkspaceEdit_adc32944 | Response_ElicitationSerialized_39ff6b15 | Content_Variant_d597fb5c>;
+  response: Array<Response_McpServersStarting_898eb3e4 | Response_ProgressTaskSerialized_132e6db2 | Response_Thinking_b518728e | Response_Shared_103f7d62 | Response_InlineReference_732e3fa8 | Response_ToolInvocationSerialized_8dd43a27 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5 | Response_TextEditGroup_303ba707 | Response_QuestionCarousel_0f3e4276 | Response_WorkspaceEdit_adc32944 | Response_ElicitationSerialized_39ff6b15 | Content_Shared_2c91468d>;
   responseId: string;
   responseMarkdownInfo?: {
     suggestionId: string;
@@ -1127,40 +1099,15 @@ export type Requests_Variant_af50ec9b_2 = {
   agent: Agent_Type_dc9bd4a7;
   codeCitations: never[];
   completionTokens: number;
-  contentReferences: {
-    kind: "reference";
-    reference: $mid_1_9b4a5f71;
-  }[];
+  contentReferences: ContentReferences_Shared_cc0d07a6[];
   elapsedMs: number;
   followups: never[];
   message: Message_Type_cb5b622e;
-  modeInfo: {
-    isBuiltin: boolean;
-    kind: "agent";
-    modeId: string;
-    modeInstructions?: {
-      content: Path;
-      isBuiltin: boolean;
-      name: string;
-      toolReferences: {
-        fullName?: string;
-        icon?: {
-          id: string;
-        };
-        id: string;
-        kind: "tool";
-        name: string;
-        range?: Range_Type_e984d3e7;
-      }[];
-      uri: $mid_1_9b4a5f71;
-    };
-    modeName: string;
-    permissionLevel: string;
-  };
+  modeInfo: ModeInfo_Shared_2e0ade1d;
   modelId: Path;
   modelState: ModelState_Type_32b12971;
   requestId: string;
-  response: Array<Response_McpServersStarting_898eb3e4 | Response_Thinking_b518728e | Response_Variant_780d654e | Response_ToolInvocationSerialized_8dd43a27 | Response_TextEditGroup_303ba707 | Response_InlineReference_732e3fa8 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5>;
+  response: Array<Response_McpServersStarting_898eb3e4 | Response_Thinking_b518728e | Response_Shared_103f7d62 | Response_ToolInvocationSerialized_8dd43a27 | Response_TextEditGroup_303ba707 | Response_InlineReference_732e3fa8 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5>;
   responseId: string;
   responseMarkdownInfo: never[];
   result: {
@@ -1238,45 +1185,17 @@ export type Requests_Variant_af50ec9b_3 = {
   agent: Agent_Type_dc9bd4a7;
   codeCitations: never[];
   confirmation?: string;
-  contentReferences: {
-    kind: "reference";
-    reference: $mid_1_9b4a5f71;
-  }[];
+  contentReferences: ContentReferences_Shared_cc0d07a6[];
   followups?: never[];
   message: {
     parts: Array<Parts_Prompt_3932bda1 | Parts_Text_83865028 | Parts_Agent_262332f1>;
     text: string;
   };
-  modeInfo: {
-    isBuiltin: boolean;
-    kind: "agent";
-    modeId: string;
-    modeInstructions?: {
-      content: Path;
-      isBuiltin: boolean;
-      name: string;
-      toolReferences: {
-        fullName?: string;
-        icon?: {
-          id: string;
-        };
-        id: string;
-        kind: "tool";
-        name: string;
-        range?: Range_Type_e984d3e7;
-      }[];
-      uri: $mid_1_9b4a5f71;
-    };
-    modeName: string;
-    permissionLevel: string;
-  };
+  modeInfo: ModeInfo_Shared_2e0ade1d;
   modelId: Path;
-  modelState: {
-    completedAt?: number;
-    value: number;
-  };
+  modelState: ModelState_Shared_b0e9af1d;
   requestId: string;
-  response: Array<Response_McpServersStarting_898eb3e4 | Response_ProgressTaskSerialized_132e6db2 | Response_Thinking_b518728e | Response_ToolInvocationSerialized_8dd43a27 | Response_TextEditGroup_303ba707 | Response_QuestionCarousel_0f3e4276 | Response_Variant_780d654e | Response_InlineReference_732e3fa8 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5>;
+  response: Array<Response_McpServersStarting_898eb3e4 | Response_ProgressTaskSerialized_132e6db2 | Response_Thinking_b518728e | Response_ToolInvocationSerialized_8dd43a27 | Response_TextEditGroup_303ba707 | Response_QuestionCarousel_0f3e4276 | Response_Shared_103f7d62 | Response_InlineReference_732e3fa8 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5>;
   responseId: string;
   responseMarkdownInfo?: never[];
   result?: {
@@ -1308,6 +1227,13 @@ export type Response_Variant_bffae506 = {
   value: string;
 };
 
+/** Variant.requests[] -> Variant.result.metadata -> Variant.toolCallRounds[] -> Variant.toolCalls[] -> Variant */
+export type ToolCalls_Shared_6a8fa992 = {
+  arguments: Blob;
+  id: VscodeCallId;
+  name: string;
+};
+
 /** Variant.requests[] -> Variant.result.metadata -> Variant.toolCallRounds[] -> Variant */
 export type ToolCallRounds_Variant_c05913b0 = {
   id: Uuid;
@@ -1317,11 +1243,7 @@ export type ToolCallRounds_Variant_c05913b0 = {
   statefulMarker: Path;
   summary?: Path;
   timestamp: number;
-  toolCalls: {
-    arguments: Blob;
-    id: VscodeCallId;
-    name: string;
-  }[];
+  toolCalls: ToolCalls_Shared_6a8fa992[];
   toolInputRetry: number;
 };
 
@@ -1334,11 +1256,7 @@ export type ToolCallRounds_Variant_c05913b0_2 = {
   statefulMarker: Path;
   thinking: Thinking_Type_c31d24a3;
   timestamp: number;
-  toolCalls: {
-    arguments: Blob;
-    id: VscodeCallId;
-    name: string;
-  }[];
+  toolCalls: ToolCalls_Shared_6a8fa992[];
   toolInputRetry: number;
 };
 
@@ -1400,46 +1318,16 @@ export type Requests_Variant_af50ec9b_4 = {
     }[];
     text: string;
   };
-  modeInfo: {
-    isBuiltin: boolean;
-    kind: "agent";
-    modeId: string;
-    modeInstructions?: {
-      content: Path;
-      isBuiltin: boolean;
-      name: string;
-      toolReferences: {
-        fullName?: string;
-        icon?: {
-          id: string;
-        };
-        id: string;
-        kind: "tool";
-        name: string;
-        range?: Range_Type_e984d3e7;
-      }[];
-      uri: $mid_1_9b4a5f71;
-    };
-    modeName: string;
-    permissionLevel: string;
-  };
+  modeInfo: ModeInfo_Shared_2e0ade1d;
   modelId: Path;
-  modelState: {
-    completedAt?: number;
-    value: number;
-  };
+  modelState: ModelState_Shared_b0e9af1d;
   requestId: string;
-  response: Array<Response_McpServersStarting_898eb3e4 | Response_Thinking_b518728e | Response_Variant_780d654e | Response_ToolInvocationSerialized_8dd43a27 | Response_Variant_bffae506 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5 | Response_TextEditGroup_303ba707 | Response_InlineReference_732e3fa8 | Response_ProgressTaskSerialized_132e6db2>;
+  response: Array<Response_McpServersStarting_898eb3e4 | Response_Thinking_b518728e | Response_Shared_103f7d62 | Response_ToolInvocationSerialized_8dd43a27 | Response_Variant_bffae506 | Response_UndoStop_f579e33d | Response_CodeblockUri_144beaa5 | Response_TextEditGroup_303ba707 | Response_InlineReference_732e3fa8 | Response_ProgressTaskSerialized_132e6db2>;
   responseId: string;
   responseMarkdownInfo?: never[];
   result?: {
     details: string;
-    errorDetails?: {
-      code: string;
-      confirmationButtons: ConfirmationButtons_Type_03f034ae[];
-      message: string;
-      responseIsIncomplete: boolean;
-    };
+    errorDetails?: ErrorDetails_Shared_e36342b6;
     metadata: Metadata_Type_97e20652 | Metadata_Variant_b5e53fa7_3;
     timings: Timings_Type_bfe18f74;
   };
@@ -1471,14 +1359,11 @@ export type Variant_d4f642fa = {
       chatDynamicVariableModel: never[];
     };
     inputText: string;
-    mode: {
-      id: string;
-      kind: "agent";
-    };
+    mode: Mode_Shared_9c64ec1d;
     permissionLevel?: string;
     selectedModel?: {
       identifier: Path;
-      metadata: Metadata_Variant_a2f3ae0f_2 | Metadata_Variant_a2f3ae0f | Metadata_Variant_17d09d78 | Metadata_Variant_a2f3ae0f_3;
+      metadata: Metadata_Shared_13a393ca | Metadata_Shared_21259231 | Metadata_Variant_17d09d78 | Metadata_Shared_8a419cc0;
     };
     selections: Selections_Type_cb741af8[];
   };

@@ -4,6 +4,7 @@ import { runtime } from "@/runtime"
 import { applyAutoRecursive } from "./auto-recursive"
 import { applyFieldTagConsolidation } from "./field-tag"
 import { applyHintsOnIR } from "./hint-dedup"
+import { applyHoistShared } from "./hoist-shared"
 import { applyInlineEquivalent } from "./inline-equivalent"
 import { applyInlineSameKeys } from "./inline-samekeys"
 import { applyInlineUnify } from "./inline-unify"
@@ -131,6 +132,14 @@ const PHASES: readonly Phase[] = [
       return { canonicalFor: r.canonicalFor, root: r.root }
     },
   },
+  {
+    // Final mop-up: any object IR with ≥2 parent references becomes a named
+    // decl so the renderer doesn't emit identical bodies inline N times.
+    // Pure name-addition; not loop-eligible (no IR shape changes).
+    name: "hoist-shared",
+    emitsHoists: true,
+    run: (root) => applyHoistShared(root, new Set()),
+  },
 ]
 
 /**
@@ -217,7 +226,9 @@ function runPhase(phase: Phase, opts: PipelineOptions, state: DriverState, iter:
       ? runStructuralDedupe(state.root, opts, state.hoistedSet)
       : phase.name === "inline-equivalent"
         ? runInlineEquivalent(state.root, state.hoistedSet)
-        : phase.run(state.root, opts)
+        : phase.name === "hoist-shared"
+          ? runHoistShared(state.root, state.hoistedSet)
+          : phase.run(state.root, opts)
 
   const rootSwapped = res.root !== undefined && res.root !== state.root
   if (res.root !== undefined) state.root = res.root
@@ -271,6 +282,11 @@ function runStructuralDedupe(root: Schema, opts: PipelineOptions, extraHoisted: 
 function runInlineEquivalent(root: Schema, hoistedSet: ReadonlySet<Schema>): PhaseResult {
   const r = applyInlineEquivalent(root, hoistedSet)
   return { canonicalFor: r.canonicalFor }
+}
+
+function runHoistShared(root: Schema, hoistedSet: ReadonlySet<Schema>): PhaseResult {
+  const r = applyHoistShared(root, hoistedSet)
+  return { canonicalFor: r.canonicalFor, newHoists: r.newHoists, hoistNames: r.hoistNames }
 }
 
 function emitTrace(trace: readonly TraceEntry[]): void {

@@ -16,10 +16,9 @@ describe("pipeline", () => {
       "inline-samekeys",
       "inline-equivalent",
       "structural-dedupe",
+      "hoist-shared",
     ])
   })
-
-  // Convergence loop subset. Earlier phases are setup and not re-run.
   test("convergence loop phases", () => {
     expect(PIPELINE_LOOP_PHASE_NAMES).toEqual([
       "inline-unify",
