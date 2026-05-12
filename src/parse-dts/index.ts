@@ -225,7 +225,7 @@ class Parser {
   parseObject(): Schema {
     this.eat("punct", "{")
     const props = new Map<string, { schema: Schema; present: number }>()
-    let total = 1
+    const total = 1
     while (!this.match("punct", "}")) {
       const keyTok = this.next()
       let key: string
@@ -260,7 +260,7 @@ function aliasNameOf(s: Schema): string | undefined {
 /** Collapse adjacent prim variants (e.g. `string | number | null`) into a single prim node. */
 function collapseUnion(variants: Schema[]): Schema {
   // Merge adjacent pure-prim variants
-  let acc: Schema & { k: "prim" } = { k: "prim", types: new Set() }
+  const acc: Schema & { k: "prim" } = { k: "prim", types: new Set() }
   let hasAcc = false
   const others: Schema[] = []
   for (const v of variants) {

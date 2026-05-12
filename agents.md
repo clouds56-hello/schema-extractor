@@ -87,14 +87,18 @@ scripts/bench.ts          # walks manifest, times gen+check, prints throughput
 2. hint-dedup             — DEDUP_HINTS
 3. auto-recursive         — recursive (field, tagKey, tagValue)
 4. field-tag              — same (parentField, tagKey, tagValue), non-recursive
-5. tag-hints              — MULTI_TAG_HINTS ($mid, …)
-6. inline-unify           — inline ↔ hoisted, then inline-only
-7. inline-samekeys        — untagged identical key sets
-8. structural-dedupe      — collapse shape-equivalent hoisted decls (esp. unrolled-recursive chains)
+5. tag-hints              — MULTI_TAG_HINTS ($mid, …) global consolidation
+6. inline-unify           — inline ↔ hoisted, then inline-only           [loop]
+7. inline-samekeys        — untagged identical key sets                  [loop]
+8. structural-dedupe      — collapse shape-equivalent hoisted decls      [loop]
 9. (render)               — collectHoists + emit named decls
 10. dedupeDecls           — structural identical-body collapse
 ```
-Reordering breaks fixtures. If you must change the order, update the pipeline test under `tests/golden/cases/` first.
+After the linear sweep, phases marked `[loop]` re-run as a convergence cycle
+until none reports work (cap: 4 iterations). Cap-exhaustion logs a warning
+to stderr. Reordering the linear sweep breaks fixtures. If you must change
+the order, update the pipeline test under `tests/unit/pipeline.test.ts` and
+the golden cases under `tests/golden/cases/` first.
 
 ### CLI surface (subcommand-based)
 - `gen` — extract a `.d.ts`. Three modes:

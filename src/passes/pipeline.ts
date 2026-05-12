@@ -46,6 +46,15 @@ interface PhaseResult {
 interface Phase {
   name: string
   run(root: Schema, opts: PipelineOptions): PhaseResult
+  /** Phase emits hoists that should be folded into the cumulative hoistedSet. */
+  emitsHoists?: boolean
+  /** Phase prunes hoists from the cumulative set via its canonicalFor map. */
+  prunesHoists?: boolean
+  /**
+   * Phase participates in the convergence loop. After the initial linear
+   * sweep, looped phases re-run until none reports work.
+   */
+  loop?: boolean
 }
 
 /**
@@ -71,6 +80,7 @@ const PHASES: readonly Phase[] = [
   },
   {
     name: "tag-hints",
+    emitsHoists: true,
     run: (root, o) => {
       const r = applyTagHints(root, o.multiTagHints)
       return { canonicalFor: r.canonicalFor, newHoists: r.newHoists, hoistNames: r.hoistNames }
@@ -78,6 +88,8 @@ const PHASES: readonly Phase[] = [
   },
   {
     name: "inline-unify",
+    emitsHoists: true,
+    loop: true,
     run: (root, o) => {
       const r = applyInlineUnify(root, o.rootName)
       return { canonicalFor: r.canonicalFor, newHoists: r.newHoists }
@@ -85,6 +97,8 @@ const PHASES: readonly Phase[] = [
   },
   {
     name: "inline-samekeys",
+    emitsHoists: true,
+    loop: true,
     run: (root, o) => {
       const r = applyInlineSameKeys(root, o.rootName)
       return { canonicalFor: r.canonicalFor, newHoists: r.newHoists, hoistNames: r.hoistNames }
@@ -97,7 +111,10 @@ const PHASES: readonly Phase[] = [
     // hoistNames). After this phase, hoistedSet entries that became
     // non-canonical are pruned, and hoistNames are remapped.
     name: "structural-dedupe",
+    prunesHoists: true,
+    loop: true,
     run: (root, o) => {
+      // Driver injects extraHoisted via runStructuralDedupe wrapper below.
       const r = applyStructuralDedupe(root, o.rootName, [])
       return { canonicalFor: r.canonicalFor, root: r.root }
     },
@@ -105,14 +122,12 @@ const PHASES: readonly Phase[] = [
 ]
 
 /**
- * Phases whose `newHoists` should be folded into the cumulative
- * `hoistedSet`. Excludes structural-dedupe (which only removes).
+ * Maximum number of convergence iterations after the initial sweep. Each
+ * iteration re-runs the loop-marked phases. A bound prevents pathological
+ * non-monotonic interactions from spinning forever; if hit, a warning is
+ * printed to stderr (always, not gated on trace).
  */
-const HOIST_PHASES = new Set([
-  "tag-hints",
-  "inline-unify",
-  "inline-samekeys",
-])
+const CONVERGENCE_CAP = 4
 
 interface TraceEntry {
   name: string
@@ -120,79 +135,121 @@ interface TraceEntry {
   rewrites: number
   newHoists: number
   rootSwapped: boolean
+  /** 0 = initial sweep; 1..N = convergence iteration number. */
+  iter: number
+}
+
+interface DriverState {
+  root: Schema
+  hoistedSet: Set<Schema>
+  hoistNames: Map<Schema, string>
+  trace: TraceEntry[]
+  wantTrace: boolean
 }
 
 /**
  * Run the canonical pipeline of IR transformations. The phase order is
  * documented in `agents.md` and encoded in `PHASES` above.
  *
+ * After the initial linear sweep, phases marked `loop: true` re-run until
+ * none reports work (or `CONVERGENCE_CAP` is exhausted) — this catches
+ * cascades like "structural-dedupe collapses two decls, freeing inline-
+ * samekeys to merge their inline siblings".
+ *
  * Set `runtime.pipelineTrace = true` (or pass `--trace-pipeline` on the CLI)
  * to log per-phase timings + rewrite counts to stderr.
  */
 export function runPipeline(root: Schema, opts: PipelineOptions): PipelineResult {
-  const hoistedSet = new Set<Schema>()
-  const hoistNames = new Map<Schema, string>()
-  const trace: TraceEntry[] = []
-  const wantTrace = runtime.pipelineTrace
+  const state: DriverState = {
+    root,
+    hoistedSet: new Set(),
+    hoistNames: new Map(),
+    trace: [],
+    wantTrace: runtime.pipelineTrace,
+  }
 
-  // Structural-dedupe needs the in-flight hoistedSet (so it can also fold
-  // hoists introduced by earlier phases). We pass it positionally below.
-  for (const phase of PHASES) {
-    const t0 = wantTrace ? performance.now() : 0
-    const res =
-      phase.name === "structural-dedupe"
-        ? runStructuralDedupePhase(root, opts, hoistedSet)
-        : phase.run(root, opts)
+  // Initial linear sweep.
+  for (const phase of PHASES) runPhase(phase, opts, state, 0)
 
-    const rootSwapped = res.root !== undefined && res.root !== root
-    if (res.root !== undefined) root = res.root
-
-    if (res.canonicalFor.size > 0) {
-      root = rewriteIR(root, res.canonicalFor, new Set())
+  // Convergence loop: re-run loop-marked phases until quiescent.
+  const loopPhases = PHASES.filter((p) => p.loop)
+  let converged = false
+  let iter = 0
+  for (iter = 1; iter <= CONVERGENCE_CAP; iter++) {
+    let progressed = false
+    for (const phase of loopPhases) {
+      if (runPhase(phase, opts, state, iter)) progressed = true
     }
+    if (!progressed) {
+      converged = true
+      break
+    }
+  }
+  if (!converged) {
+    console.error(
+      `[pipeline] convergence cap (${CONVERGENCE_CAP}) reached without stabilizing — re-run with --trace-pipeline to inspect`,
+    )
+  }
 
-    let newHoistCount = 0
-    if (res.newHoists && HOIST_PHASES.has(phase.name)) {
-      for (const h of res.newHoists) {
-        if (h.k === "object") {
-          hoistedSet.add(h)
-          newHoistCount++
-        }
+  if (state.wantTrace) emitTrace(state.trace)
+
+  return { root: state.root, hoistedSet: state.hoistedSet, hoistNames: state.hoistNames }
+}
+
+/** Execute a single phase against `state`. Returns true iff the phase did work. */
+function runPhase(phase: Phase, opts: PipelineOptions, state: DriverState, iter: number): boolean {
+  const t0 = state.wantTrace ? performance.now() : 0
+
+  const res =
+    phase.name === "structural-dedupe"
+      ? runStructuralDedupe(state.root, opts, state.hoistedSet)
+      : phase.run(state.root, opts)
+
+  const rootSwapped = res.root !== undefined && res.root !== state.root
+  if (res.root !== undefined) state.root = res.root
+
+  if (res.canonicalFor.size > 0) {
+    state.root = rewriteIR(state.root, res.canonicalFor, new Set())
+  }
+
+  let newHoistCount = 0
+  if (res.newHoists && phase.emitsHoists) {
+    for (const h of res.newHoists) {
+      if (h.k === "object") {
+        if (!state.hoistedSet.has(h)) newHoistCount++
+        state.hoistedSet.add(h)
       }
-    }
-
-    if (res.hoistNames) {
-      for (const [k, v] of res.hoistNames) hoistNames.set(k, v)
-    }
-
-    if (phase.name === "structural-dedupe") {
-      // Prune collapsed hoists; remap names so the surviving canonical decl
-      // inherits a name from any of the merged-away decls.
-      for (const [k, v] of res.canonicalFor) {
-        hoistedSet.delete(k)
-        const name = hoistNames.get(k)
-        if (name && !hoistNames.has(v)) hoistNames.set(v, name)
-        hoistNames.delete(k)
-      }
-    }
-
-    if (wantTrace) {
-      trace.push({
-        name: phase.name,
-        ms: +(performance.now() - t0).toFixed(2),
-        rewrites: res.canonicalFor.size,
-        newHoists: newHoistCount,
-        rootSwapped,
-      })
     }
   }
 
-  if (wantTrace) emitTrace(trace)
+  if (res.hoistNames) {
+    for (const [k, v] of res.hoistNames) state.hoistNames.set(k, v)
+  }
 
-  return { root, hoistedSet, hoistNames }
+  if (phase.prunesHoists) {
+    for (const [k, v] of res.canonicalFor) {
+      state.hoistedSet.delete(k)
+      const name = state.hoistNames.get(k)
+      if (name && !state.hoistNames.has(v)) state.hoistNames.set(v, name)
+      state.hoistNames.delete(k)
+    }
+  }
+
+  if (state.wantTrace) {
+    state.trace.push({
+      name: phase.name,
+      ms: +(performance.now() - t0).toFixed(2),
+      rewrites: res.canonicalFor.size,
+      newHoists: newHoistCount,
+      rootSwapped,
+      iter,
+    })
+  }
+
+  return res.canonicalFor.size > 0 || newHoistCount > 0 || rootSwapped
 }
 
-function runStructuralDedupePhase(
+function runStructuralDedupe(
   root: Schema,
   opts: PipelineOptions,
   extraHoisted: Iterable<Schema>,
@@ -203,15 +260,21 @@ function runStructuralDedupePhase(
 
 function emitTrace(trace: readonly TraceEntry[]): void {
   const totalMs = trace.reduce((s, e) => s + e.ms, 0)
-  const lines = ["[pipeline] phase                ms   rewrites  +hoists  root"]
+  const lines = ["[pipeline] iter  phase                ms   rewrites  +hoists  root"]
   for (const e of trace) {
+    const iterLabel = e.iter === 0 ? "init" : `i${e.iter}`
     lines.push(
-      `[pipeline] ${e.name.padEnd(20)} ${e.ms.toFixed(2).padStart(7)}  ${String(e.rewrites).padStart(8)}  ${String(e.newHoists).padStart(7)}  ${e.rootSwapped ? "swap" : "."}`,
+      `[pipeline] ${iterLabel.padEnd(5)} ${e.name.padEnd(20)} ${e.ms.toFixed(2).padStart(7)}  ${String(e.rewrites).padStart(8)}  ${String(e.newHoists).padStart(7)}  ${e.rootSwapped ? "swap" : "."}`,
     )
   }
-  lines.push(`[pipeline] total                ${totalMs.toFixed(2).padStart(7)}ms`)
+  lines.push(`[pipeline] total                      ${totalMs.toFixed(2).padStart(7)}ms`)
   console.error(lines.join("\n"))
 }
 
 /** Names of phases in canonical execution order. Exposed for tests. */
 export const PIPELINE_PHASE_NAMES: readonly string[] = PHASES.map((p) => p.name)
+
+/** Names of phases that participate in the convergence loop. Exposed for tests. */
+export const PIPELINE_LOOP_PHASE_NAMES: readonly string[] = PHASES.filter((p) => p.loop).map(
+  (p) => p.name,
+)

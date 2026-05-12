@@ -8,17 +8,37 @@ export type Path = string;
 export type Base64 = string;
 export type Blob = string;
 
+/** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant.auth -> Variant */
+export type Auth_Type_0db0f468 = {
+  accountLabel: string;
+  providerLabel: string;
+};
+
+/** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant.capabilities -> Variant */
+export type Capabilities_Type_024bea5e = {
+  agentMode: boolean;
+  toolCalling: boolean;
+  vision: boolean;
+};
+
+/** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant.isDefaultForLocation -> Variant */
+export type IsDefaultForLocation_Type_b17d32ba = {
+  editor: boolean;
+  notebook: boolean;
+  panel: boolean;
+  terminal: boolean;
+};
+
+/** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant.modelPickerCategory -> Variant */
+export type ModelPickerCategory_Type_e766cacf = {
+  label: string;
+  order: number;
+};
+
 /** 0.v -> Variant.inputState -> Variant.selectedModel -> Variant.metadata -> Variant */
 export type Metadata_Variant_a2f3ae0f = {
-  auth: {
-    accountLabel: string;
-    providerLabel: string;
-  };
-  capabilities: {
-    agentMode: boolean;
-    toolCalling: boolean;
-    vision: boolean;
-  };
+  auth: Auth_Type_0db0f468;
+  capabilities: Capabilities_Type_024bea5e;
   configurationSchema: {
     properties: {
       reasoningEffort: {
@@ -38,19 +58,11 @@ export type Metadata_Variant_a2f3ae0f = {
   };
   family: string;
   id: string;
-  isDefaultForLocation: {
-    editor: boolean;
-    notebook: boolean;
-    panel: boolean;
-    terminal: boolean;
-  };
+  isDefaultForLocation: IsDefaultForLocation_Type_b17d32ba;
   isUserSelectable: boolean;
   maxInputTokens: number;
   maxOutputTokens: number;
-  modelPickerCategory: {
-    label: string;
-    order: number;
-  };
+  modelPickerCategory: ModelPickerCategory_Type_e766cacf;
   multiplierNumeric: number;
   name: string;
   pricing: string;
@@ -89,12 +101,7 @@ export type Metadata_Variant_a2f3ae0f_2 = {
   };
   family: string;
   id: string;
-  isDefaultForLocation: {
-    editor: boolean;
-    notebook: boolean;
-    panel: boolean;
-    terminal: boolean;
-  };
+  isDefaultForLocation: IsDefaultForLocation_Type_b17d32ba;
   isUserSelectable: boolean;
   maxInputTokens: number;
   maxOutputTokens: number;
@@ -178,14 +185,23 @@ export type InputState_Type_325379cc = {
   selections: Selections_Type_cb741af8[];
 };
 
+/** 0.v -> Variant.requests[].agent -> Variant.extensionId -> Variant */
+export type ExtensionId_Type_5b6f8a91 = {
+  _lower: string;
+  value: string;
+};
+
+/** 0.v -> Variant.requests[].agent -> Variant.slashCommands[] -> Variant.disambiguation[] -> Variant */
+export type Disambiguation_Type_d9420919 = {
+  category: string;
+  description: string;
+  examples: string[];
+};
+
 /** 0.v -> Variant.requests[].agent -> Variant.slashCommands[] -> Variant */
 export type SlashCommands_Variant_de33fafe = {
   description: string;
-  disambiguation?: {
-    category: string;
-    description: string;
-    examples: string[];
-  }[];
+  disambiguation?: Disambiguation_Type_d9420919[];
   isSticky?: boolean;
   name: string;
   sampleRequest?: string;
@@ -209,10 +225,7 @@ export type Agent_Type_dc9bd4a7 = {
   description: string;
   disambiguation: never[];
   extensionDisplayName: string;
-  extensionId: {
-    _lower: string;
-    value: string;
-  };
+  extensionId: ExtensionId_Type_5b6f8a91;
   extensionPublisherId: string;
   extensionVersion: Semver;
   fullName: string;
@@ -603,6 +616,15 @@ export type Props_Variant_39a77ff4_3 = {
   passPriority: boolean;
 };
 
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.references[].anchor -> Variant */
+export type Anchor_Type_5cbf55b8 = {
+  range: {
+    character: number;
+    line: number;
+  }[];
+  uri: $mid_1_9b4a5f71;
+};
+
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1 */
 export type Children_1_656bf662 = {
   children: Array<Children_2_d0a357ce | Children_1_656bf662>;
@@ -612,13 +634,7 @@ export type Children_1_656bf662 = {
   keepWithId?: number;
   props: Props_Variant_39a77ff4 | Props_Variant_39a77ff4_2 | Props_Variant_39a77ff4_3;
   references: {
-    anchor: {
-      range: {
-        character: number;
-        line: number;
-      }[];
-      uri: $mid_1_9b4a5f71;
-    };
+    anchor: Anchor_Type_5cbf55b8;
     options: {
       isFromTool: boolean;
     };
@@ -655,6 +671,34 @@ export type $mid_20_d4f9b655 = {
   content: Array<$mid_21_db627c2b | $mid_23_16b15f28>;
 };
 
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallRounds[] -> Variant.thinking -> Variant */
+export type Thinking_Type_c31d24a3 = {
+  encrypted: Path;
+  id: Path;
+  text: never[];
+  tokens: number;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallRounds[] -> Variant.toolCalls[] -> Variant */
+export type ToolCalls_Type_d37e2af8 = {
+  arguments: Path;
+  id: VscodeCallId;
+  name: string;
+};
+
+/** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallRounds[] -> Variant */
+export type ToolCallRounds_Type_999c9a19 = {
+  id: Uuid;
+  phase?: string;
+  phaseModelId?: string;
+  response: string;
+  statefulMarker?: Path;
+  thinking?: Thinking_Type_c31d24a3;
+  timestamp: number;
+  toolCalls: ToolCalls_Type_d37e2af8[];
+  toolInputRetry: number;
+};
+
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant */
 export type Metadata_Type_97e20652 = {
   agentId: string;
@@ -667,26 +711,7 @@ export type Metadata_Type_97e20652 = {
   responseId: Uuid;
   sessionId: Uuid;
   toolCallResults: Record<VscodeCallId, $mid_20_d4f9b655>;
-  toolCallRounds: {
-    id: Uuid;
-    phase?: string;
-    phaseModelId?: string;
-    response: string;
-    statefulMarker?: Path;
-    thinking?: {
-      encrypted: Path;
-      id: Path;
-      text: never[];
-      tokens: number;
-    };
-    timestamp: number;
-    toolCalls: {
-      arguments: Path;
-      id: VscodeCallId;
-      name: string;
-    }[];
-    toolInputRetry: number;
-  }[];
+  toolCallRounds: ToolCallRounds_Type_999c9a19[];
 };
 
 /** 0.v -> Variant.requests[].result -> Variant.timings -> Variant */
@@ -784,14 +809,6 @@ export type $0_801eaa31 = {
 export type Value_Variant_a02d0894 = {
   range: Selections_Type_cb741af8;
   uri: $mid_1_9b4a5f71;
-};
-
-/** Variant.inputState.selectedModel.metadata -> Variant.isDefaultForLocation -> Variant */
-export type IsDefaultForLocation_Type_b17d32ba = {
-  editor: boolean;
-  notebook: boolean;
-  panel: boolean;
-  terminal: boolean;
 };
 
 /** Variant.inputState.selectedModel.metadata -> Variant */
@@ -979,15 +996,18 @@ export type Response_ElicitationSerialized_39ff6b15 = {
   };
 };
 
+/** Variant.requests[] -> Variant.result -> Variant.errorDetails -> Variant.confirmationButtons[] -> Variant */
+export type ConfirmationButtons_Type_03f034ae = {
+  data: {
+    copilotContinueOnError: boolean;
+  };
+  label: string;
+};
+
 /** Variant.requests[] -> Variant.result -> Variant.errorDetails -> Variant */
 export type ErrorDetails_Variant_f34fccbe = {
   code: string;
-  confirmationButtons: {
-    data: {
-      copilotContinueOnError: boolean;
-    };
-    label: string;
-  }[];
+  confirmationButtons: ConfirmationButtons_Type_03f034ae[];
   message: string;
   responseIsIncomplete: boolean;
 };
@@ -1174,28 +1194,6 @@ export type Requests_Variant_af50ec9b = {
   variableData: {
     variables: Array<Variables_PromptFile_2c6f576e | Variables_File_d11166f2 | Variables_Tool_fb9422e6 | Variables_PromptText_2a5131e7>;
   };
-};
-
-/** Variant.requests[] -> Variant.result.metadata -> Variant.toolCallRounds[] -> Variant */
-export type ToolCallRounds_Type_999c9a19 = {
-  id: Uuid;
-  phase?: string;
-  phaseModelId?: string;
-  response: string;
-  statefulMarker?: Path;
-  thinking?: {
-    encrypted: Path;
-    id: Path;
-    text: never[];
-    tokens: number;
-  };
-  timestamp: number;
-  toolCalls: {
-    arguments: Path;
-    id: VscodeCallId;
-    name: string;
-  }[];
-  toolInputRetry: number;
 };
 
 /** Variant.requests[] -> Variant.result.metadata -> Variant */
@@ -1446,14 +1444,6 @@ export type ToolCallRounds_Variant_c05913b0 = {
   toolInputRetry: number;
 };
 
-/** Variant.requests[] -> Variant.result.metadata -> Variant.toolCallRounds[] -> Variant.thinking -> Variant */
-export type Thinking_Type_c31d24a3 = {
-  encrypted: Path;
-  id: Path;
-  text: never[];
-  tokens: number;
-};
-
 /** Variant.requests[] -> Variant.result.metadata -> Variant.toolCallRounds[] -> Variant */
 export type ToolCallRounds_Variant_c05913b0_2 = {
   id: Uuid;
@@ -1568,12 +1558,7 @@ export type Requests_Variant_af50ec9b_4 = {
     details: string;
     errorDetails?: {
       code: string;
-      confirmationButtons: {
-        data: {
-          copilotContinueOnError: boolean;
-        };
-        label: string;
-      }[];
+      confirmationButtons: ConfirmationButtons_Type_03f034ae[];
       message: string;
       responseIsIncomplete: boolean;
     };
