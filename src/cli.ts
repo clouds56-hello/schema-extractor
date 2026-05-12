@@ -2,6 +2,7 @@ import type { ExtractorOptions } from "./config"
 import {
   checkJsonlAgainstDts,
   DEFAULT_ADAPTERS,
+  DEFAULT_PLUGINS,
   extractSchemaFromFiles,
   extractSchemaFromStream,
   formatReport,
@@ -15,6 +16,7 @@ interface GenArgs {
   name: string | null
   tag: string | null
   noAdapters: boolean
+  noPlugins: boolean
   hint: Array<readonly [string, string]>
   recordHint: string[]
   multiTagHint: string[]
@@ -56,6 +58,7 @@ Options:
   --name <Root>         Root type name (default: Root, or per-target in manifest)
   --tag <key>           Extra discriminator key
   --no-adapters         Disable file-shape adapters (vscode-patch, ...)
+  --no-plugins          Disable naming plugins (vscode, ...)
   --hint <Scope:Name>   Add a dedup hint (repeatable). Format: "ScopePrefix:NamePrefix"
   --record-hint <Seg>   Add a record-collapse hint (repeatable)
   --multi-tag <Key>     Add a global-tag hint (repeatable)
@@ -115,6 +118,7 @@ function parseGenArgs(argv: readonly string[]): GenArgs {
     name: null,
     tag: null,
     noAdapters: false,
+    noPlugins: false,
     hint: [],
     recordHint: [],
     multiTagHint: [],
@@ -132,6 +136,7 @@ function parseGenArgs(argv: readonly string[]): GenArgs {
     else if (x === "--name") a.name = argv[++i] ?? null
     else if (x === "--tag") a.tag = argv[++i] ?? null
     else if (x === "--no-adapters") a.noAdapters = true
+    else if (x === "--no-plugins") a.noPlugins = true
     else if (x === "-q" || x === "--quiet") a.quiet = true
     else if (x === "--trace-pipeline") a.tracePipeline = true
     else if (x === "--hint") {
@@ -162,6 +167,8 @@ function mergeOptions(targetOpts: ExtractorOptions | undefined, args: GenArgs): 
   if (args.tag !== null) out.userTagKey = args.tag
   if (args.noAdapters) out.adapters = []
   else if (out.adapters === undefined) out.adapters = DEFAULT_ADAPTERS
+  if (args.noPlugins) out.plugins = []
+  else if (out.plugins === undefined) out.plugins = DEFAULT_PLUGINS
   if (args.hint.length) out.dedupHints = args.hint
   if (args.recordHint.length) out.recordHints = args.recordHint
   if (args.multiTagHint.length) out.multiTagHints = args.multiTagHint

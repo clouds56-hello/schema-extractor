@@ -17,6 +17,7 @@ describe("pipeline", () => {
       "inline-equivalent",
       "structural-dedupe",
       "hoist-shared",
+      "apply-plugins",
     ])
   })
   test("convergence loop phases", () => {

@@ -1,5 +1,6 @@
 import type { Schema } from "@/ir/types"
 import { TAG_CANDIDATES } from "@/ir/types"
+import type { NamePlugin } from "@/plugins/index"
 import { runtime } from "@/runtime"
 import { applyAutoRecursive } from "./auto-recursive"
 import { applyFieldTagConsolidation } from "./field-tag"
@@ -8,6 +9,7 @@ import { applyHoistShared } from "./hoist-shared"
 import { applyInlineEquivalent } from "./inline-equivalent"
 import { applyInlineSameKeys } from "./inline-samekeys"
 import { applyInlineUnify } from "./inline-unify"
+import { applyPlugins } from "./apply-plugins"
 import { applyRecordify } from "./recordify"
 import { rewriteIR } from "./rewrite"
 import { applyStructuralDedupe } from "./structural-dedupe"
@@ -18,6 +20,7 @@ export interface PipelineOptions {
   recordHints: readonly string[]
   dedupHints: ReadonlyArray<readonly [string, string]>
   multiTagHints: readonly string[]
+  plugins: readonly NamePlugin[]
 }
 
 export interface PipelineResult {
@@ -139,6 +142,18 @@ const PHASES: readonly Phase[] = [
     name: "hoist-shared",
     emitsHoists: true,
     run: (root) => applyHoistShared(root, new Set()),
+  },
+  {
+    // Domain knowledge layer: bundled plugins (default: vscode) inspect each
+    // object IR and may assign stable type-alias names and/or force-hoist.
+    // Runs last so plugin names override hash-based names from earlier
+    // phases. Pure name/hoist additions; not loop-eligible.
+    name: "apply-plugins",
+    emitsHoists: true,
+    run: (root, o) => {
+      const r = applyPlugins(root, o.plugins)
+      return { canonicalFor: r.canonicalFor, newHoists: r.newHoists, hoistNames: r.hoistNames }
+    },
   },
 ]
 

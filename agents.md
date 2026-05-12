@@ -94,8 +94,9 @@ scripts/bench.ts          # walks manifest, times gen+check, prints throughput
 8. inline-equivalent      — collapse byte-identical inline objects       [loop]
 9. structural-dedupe      — collapse shape-equivalent hoisted decls      [loop]
 10. hoist-shared          — promote inline shapes shared across ≥2 refs
-11. (render)              — collectHoists + emit named decls
-12. dedupeDecls           — structural identical-body collapse
+11. apply-plugins         — domain plugins assign final names + force hoists
+12. (render)              — collectHoists + emit named decls
+13. dedupeDecls           — structural identical-body collapse
 ```
 After the linear sweep, phases marked `[loop]` re-run as a convergence cycle
 until none reports work (cap: 4 iterations). Cap-exhaustion logs a warning

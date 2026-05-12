@@ -1,5 +1,6 @@
 import type { Adapter } from "./adapters/index"
 import { DEFAULT_ADAPTERS } from "./adapters/index"
+import { collectContributions, DEFAULT_PLUGINS, type NamePlugin } from "./plugins/index"
 
 export interface ExtractorOptions {
   /** Root type name in emitted .d.ts. Default: `"Root"`. */
@@ -14,6 +15,8 @@ export interface ExtractorOptions {
   multiTagHints?: readonly string[]
   /** Adapter chain. Defaults to all built-ins; pass `[]` to disable. */
   adapters?: readonly Adapter[]
+  /** Naming/hoisting plugins. Defaults to all built-ins; pass `[]` to disable. */
+  plugins?: readonly NamePlugin[]
   /** Override the file header comment. */
   header?: string
 }
@@ -25,26 +28,32 @@ export interface ResolvedOptions {
   recordHints: readonly string[]
   multiTagHints: readonly string[]
   adapters: readonly Adapter[]
+  plugins: readonly NamePlugin[]
   header: string | undefined
 }
 
-const DEFAULT_DEDUP_HINTS: ReadonlyArray<readonly [string, string]> = [
-  ["CopilotChat_1_V_Variant_Metadata_ToolCallResults_Value_Content", "Children_1"],
-  ["CopilotChat_1_V_Variant_Metadata_ToolCallResults_Value_Content", "Children_2"],
-]
-
-const DEFAULT_RECORD_HINTS: readonly string[] = ["UserSelectedTools"]
-
-const DEFAULT_MULTI_TAG_HINTS: readonly string[] = ["$mid"]
+// Domain-agnostic core defaults. Project-specific knowledge (e.g. VSCode's
+// `$mid` marshalling discriminator, copilot-chat decl naming) lives in the
+// bundled plugins — see `src/plugins/vscode.ts`. Users opting out via
+// `plugins: []` get a clean baseline.
+const DEFAULT_DEDUP_HINTS: ReadonlyArray<readonly [string, string]> = []
+const DEFAULT_RECORD_HINTS: readonly string[] = []
+const DEFAULT_MULTI_TAG_HINTS: readonly string[] = []
 
 export function resolveOptions(opts: ExtractorOptions = {}): ResolvedOptions {
+  const plugins = opts.plugins ?? DEFAULT_PLUGINS
+  const contrib = collectContributions(plugins)
   return {
     rootName: opts.rootName ?? "Root",
     userTagKey: opts.userTagKey ?? null,
-    dedupHints: opts.dedupHints ?? DEFAULT_DEDUP_HINTS,
-    recordHints: opts.recordHints ?? DEFAULT_RECORD_HINTS,
-    multiTagHints: opts.multiTagHints ?? DEFAULT_MULTI_TAG_HINTS,
+    // Plugin contributions and explicit user options are concatenated.
+    // Explicit-option entries take precedence by appearing later (later
+    // hint-dedup passes resolve duplicates idempotently).
+    dedupHints: [...contrib.dedupHints, ...(opts.dedupHints ?? DEFAULT_DEDUP_HINTS)],
+    recordHints: [...contrib.recordHints, ...(opts.recordHints ?? DEFAULT_RECORD_HINTS)],
+    multiTagHints: [...contrib.multiTagHints, ...(opts.multiTagHints ?? DEFAULT_MULTI_TAG_HINTS)],
     adapters: opts.adapters ?? DEFAULT_ADAPTERS,
+    plugins,
     header: opts.header,
   }
 }

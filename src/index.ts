@@ -24,6 +24,8 @@ export { checkRecords, formatReport, mergeReport } from "./check/index"
 export type { ExtractorOptions } from "./config"
 export type { Schema } from "./ir/types"
 export { parseDts } from "./parse-dts/index"
+export type { NamePlugin, PluginContribution, PluginCtx, PluginMatch } from "./plugins/index"
+export { DEFAULT_PLUGINS, vscodePlugin } from "./plugins/index"
 
 /** Run the full pipeline on an in-memory IR and emit a TypeScript document. */
 function emitDocument(root: Schema, opts: ReturnType<typeof resolveOptions>): string {
@@ -32,6 +34,7 @@ function emitDocument(root: Schema, opts: ReturnType<typeof resolveOptions>): st
     recordHints: opts.recordHints,
     dedupHints: opts.dedupHints,
     multiTagHints: opts.multiTagHints,
+    plugins: opts.plugins,
   })
   const ctx = makeEmitCtx([opts.rootName])
   ctx.hoistedSet = piped.hoistedSet

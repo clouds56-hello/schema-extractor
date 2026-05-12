@@ -249,7 +249,7 @@ export type Message_Type_cb5b622e = {
 };
 
 /** 0.v -> Variant.requests[].modeInfo -> Variant.modeInstructions.uri -> Variant */
-export type $mid_1_9b4a5f71 = {
+export type VscodeUri = {
   $mid: 1;
   _sep?: number;
   authority?: string;
@@ -280,7 +280,7 @@ export type ModeInfo_Shared_2e0ade1d = {
       name: string;
       range?: Range_Type_e984d3e7;
     }[];
-    uri: $mid_1_9b4a5f71;
+    uri: VscodeUri;
   };
   modeName: string;
   permissionLevel: string;
@@ -342,7 +342,7 @@ export type Response_Thinking_b518728e = {
 
 /** 0.v -> Variant.requests[].response[] -> Variant */
 export type Response_Shared_103f7d62 = {
-  baseUri?: $mid_1_9b4a5f71;
+  baseUri?: VscodeUri;
   supportAlertSyntax?: boolean;
   supportHtml: boolean;
   supportThemeIcons: boolean;
@@ -355,7 +355,7 @@ export type InvocationMessage_Shared_6bd878a0 = {
   supportAlertSyntax: boolean;
   supportHtml: boolean;
   supportThemeIcons: boolean;
-  uris: Record<string, $mid_1_9b4a5f71> | Record<Url, $mid_1_9b4a5f71>;
+  uris: Record<string, VscodeUri> | Record<Url, VscodeUri>;
   value: string;
 };
 
@@ -399,7 +399,7 @@ export type ResultDetails_Variant_6a3ac424 = {
 /** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.resultDetails -> Variant[] -> Variant */
 export type ResultDetails_Shared_99f08392 = {
   range: Range_Type_c56f3a3b;
-  uri: $mid_1_9b4a5f71;
+  uri: VscodeUri;
 };
 
 /** 0.v -> Variant.requests[].response[] -> toolInvocationSerialized.source -> mcp */
@@ -439,7 +439,7 @@ export type ToolSpecificData_Terminal_e951ff02 = {
     commandLine: string;
     cwdLabel?: Path;
   };
-  cwd: $mid_1_9b4a5f71;
+  cwd: VscodeUri;
   isBackground: boolean;
   kind: "terminal";
   language: string;
@@ -455,7 +455,7 @@ export type ToolSpecificData_Terminal_e951ff02 = {
     exitCode?: number;
     timestamp: number;
   };
-  terminalCommandUri?: $mid_1_9b4a5f71;
+  terminalCommandUri?: VscodeUri;
   terminalTheme?: {
     background: string;
     foreground: string;
@@ -504,7 +504,7 @@ export type Response_ToolInvocationSerialized_8dd43a27 = {
   originMessage?: string;
   pastTenseMessage?: InvocationMessage_Shared_6bd878a0 | Content_Shared_2c91468d | string | Path;
   presentation?: string;
-  resultDetails?: ResultDetails_Variant_6a3ac424 | Array<ResultDetails_Shared_99f08392 | $mid_1_9b4a5f71> | ResultDetails_Shared_99f08392[] | Array<$mid_1_9b4a5f71 | ResultDetails_Shared_99f08392> | never[] | $mid_1_9b4a5f71[];
+  resultDetails?: ResultDetails_Variant_6a3ac424 | Array<ResultDetails_Shared_99f08392 | VscodeUri> | ResultDetails_Shared_99f08392[] | Array<VscodeUri | ResultDetails_Shared_99f08392> | never[] | VscodeUri[];
   source: Source_Mcp_72c5f656 | Source_Internal_44ce46f1;
   subAgentInvocationId?: string;
   toolCallId: string;
@@ -522,7 +522,7 @@ export type InlineReference_12_ea363bfb = {
 
 /** 0.v -> Variant.requests[].response[] -> inlineReference */
 export type Response_InlineReference_732e3fa8 = {
-  inlineReference: $mid_1_9b4a5f71 | InlineReference_12_ea363bfb | ResultDetails_Shared_99f08392;
+  inlineReference: VscodeUri | InlineReference_12_ea363bfb | ResultDetails_Shared_99f08392;
   kind: "inlineReference";
   name?: string;
   resolveId?: Uuid;
@@ -541,14 +541,14 @@ export type RenderedGlobalContext_3_69a1a30d = {
 };
 
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 21 */
-export type $mid_21_db627c2b = {
+export type VscodeLanguageModelTextPart = {
   $mid: 21;
   value: string;
 };
 
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.children[] -> 2.references[] -> Variant */
 export type References_Type_d093f04f = {
-  anchor: $mid_1_9b4a5f71;
+  anchor: VscodeUri;
   options: {
     isFromTool: boolean;
   };
@@ -583,7 +583,7 @@ export type Range_Type_ef06e167 = {
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1.references[].anchor -> Variant */
 export type Anchor_Type_5cbf55b8 = {
   range: Range_Type_ef06e167[];
-  uri: $mid_1_9b4a5f71;
+  uri: VscodeUri;
 };
 
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23.value.node.children[] -> 1 */
@@ -612,7 +612,7 @@ export type Children_2_beff35a3 = {
 };
 
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant.content[] -> 23 */
-export type $mid_23_16b15f28 = {
+export type VscodeLanguageModelPromptTsxPart = {
   $mid: 23;
   value: {
     node: {
@@ -627,9 +627,9 @@ export type $mid_23_16b15f28 = {
 };
 
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallResults{} -> Variant */
-export type $mid_20_d4f9b655 = {
+export type VscodeLanguageModelToolResult = {
   $mid: 20;
-  content: Array<$mid_21_db627c2b | $mid_23_16b15f28>;
+  content: Array<VscodeLanguageModelTextPart | VscodeLanguageModelPromptTsxPart>;
 };
 
 /** 0.v -> Variant.requests[].result -> Variant.metadata -> Variant.toolCallRounds[] -> Variant.thinking -> Variant */
@@ -671,7 +671,7 @@ export type Metadata_Type_97e20652 = {
   resolvedModel?: string;
   responseId: Uuid;
   sessionId: Uuid;
-  toolCallResults: Record<VscodeCallId, $mid_20_d4f9b655>;
+  toolCallResults: Record<VscodeCallId, VscodeLanguageModelToolResult>;
   toolCallRounds: ToolCallRounds_Type_999c9a19[];
 };
 
@@ -747,7 +747,7 @@ export type $0_801eaa31 = {
 /** Variant.inputState.attachments[].value -> Variant */
 export type Value_Variant_a02d0894 = {
   range: Selections_Type_cb741af8;
-  uri: $mid_1_9b4a5f71;
+  uri: VscodeUri;
 };
 
 /** Variant.inputState.selectedModel.metadata -> Variant */
@@ -776,7 +776,7 @@ export type Metadata_Variant_17d09d78 = {
 /** Variant.requests[] -> Variant.contentReferences[] -> Variant */
 export type ContentReferences_Shared_cc0d07a6 = {
   kind: "reference";
-  reference: $mid_1_9b4a5f71;
+  reference: VscodeUri;
 };
 
 /** Variant.requests[] -> Variant.message.parts[] -> prompt */
@@ -812,7 +812,7 @@ export type Response_CodeblockUri_144beaa5 = {
   isEdit: boolean;
   kind: "codeblockUri";
   subAgentInvocationId?: Uuid;
-  uri: $mid_1_9b4a5f71;
+  uri: VscodeUri;
 };
 
 /** Variant.requests[] -> Variant.response[] -> textEditGroup */
@@ -827,7 +827,7 @@ export type Response_TextEditGroup_303ba707 = {
     applied: number;
     sha1: Sha1;
   };
-  uri: $mid_1_9b4a5f71;
+  uri: VscodeUri;
 };
 
 /** Variant.requests[] -> Variant.response[] -> questionCarousel.data{} -> Variant */
@@ -897,7 +897,7 @@ export type Response_QuestionCarousel_0f3e4276 = {
 /** Variant.requests[] -> Variant.response[] -> workspaceEdit */
 export type Response_WorkspaceEdit_adc32944 = {
   edits: {
-    oldResource: $mid_1_9b4a5f71;
+    oldResource: VscodeUri;
   }[];
   kind: "workspaceEdit";
 };
@@ -972,7 +972,7 @@ export type Result_Type_3a58776b = {
     resolvedModel?: string;
     responseId: Uuid;
     sessionId: Uuid;
-    toolCallResults?: Record<VscodeCallId, $mid_20_d4f9b655>;
+    toolCallResults?: Record<VscodeCallId, VscodeLanguageModelToolResult>;
     toolCallRounds: {
       id: Uuid;
       phase?: string;
@@ -1001,7 +1001,7 @@ export type Variables_PromptFile_2c6f576e = {
   modelDescription: string;
   name: string;
   toolReferences?: never[];
-  value: $mid_1_9b4a5f71;
+  value: VscodeUri;
 };
 
 /** Variant.requests[] -> Variant.variableData.variables[] -> file */
@@ -1010,7 +1010,7 @@ export type Variables_File_d11166f2 = {
   kind: "file";
   modelDescription?: string;
   name: string;
-  value: $mid_1_9b4a5f71 | Value_Variant_a02d0894;
+  value: VscodeUri | Value_Variant_a02d0894;
 };
 
 /** Variant.requests[] -> Variant.variableData.variables[] -> tool */
@@ -1053,7 +1053,7 @@ export type Requests_Variant_af50ec9b = {
   contentReferences: ContentReferences_Shared_cc0d07a6[];
   editedFileEvents?: {
     eventKind: number;
-    uri: $mid_1_9b4a5f71;
+    uri: VscodeUri;
   }[];
   elapsedMs?: number;
   followups?: never[];
@@ -1090,7 +1090,7 @@ export type Metadata_Type_f4bd771f = {
   resolvedModel: string;
   responseId: Uuid;
   sessionId: Uuid;
-  toolCallResults: Record<VscodeCallId, $mid_20_d4f9b655>;
+  toolCallResults: Record<VscodeCallId, VscodeLanguageModelToolResult>;
   toolCallRounds: ToolCallRounds_Type_999c9a19[];
 };
 
@@ -1126,7 +1126,7 @@ export type Requests_Variant_af50ec9b_2 = {
       modelDescription: string;
       name: string;
       toolReferences?: never[];
-      value: $mid_1_9b4a5f71;
+      value: VscodeUri;
     }[];
   };
 };
@@ -1148,7 +1148,7 @@ export type Metadata_Variant_b5e53fa7 = {
   resolvedModel?: string;
   responseId: Uuid;
   sessionId: Uuid;
-  toolCallResults?: Record<VscodeCallId, $mid_20_d4f9b655>;
+  toolCallResults?: Record<VscodeCallId, VscodeLanguageModelToolResult>;
   toolCallRounds: {
     id: Uuid;
     response: string;
@@ -1299,7 +1299,7 @@ export type Metadata_Variant_b5e53fa7_3 = {
       total_tokens: number;
     };
   }[];
-  toolCallResults: Record<VscodeCallId, $mid_20_d4f9b655>;
+  toolCallResults: Record<VscodeCallId, VscodeLanguageModelToolResult>;
   toolCallRounds: Array<ToolCallRounds_Variant_c05913b0 | ToolCallRounds_Variant_c05913b0_2>;
 };
 
@@ -1353,7 +1353,7 @@ export type Variant_d4f642fa = {
       kind: "file";
       modelDescription?: string;
       name: string;
-      value: $mid_1_9b4a5f71 | Value_Variant_a02d0894;
+      value: VscodeUri | Value_Variant_a02d0894;
     }[];
     contrib: {
       chatDynamicVariableModel: never[];
