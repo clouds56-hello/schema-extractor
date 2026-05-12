@@ -15,8 +15,8 @@ import { describe, expect, test } from "bun:test"
 import { existsSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { checkJsonlAgainstDts } from "@/index"
-import { findManifest, loadManifest, resolveTargetPaths } from "@/manifest"
 import { expandGlobs } from "@/input/glob"
+import { findManifest, loadManifest, resolveTargetPaths } from "@/manifest"
 
 // Targets known to fail strict check today.
 //   codex: no stateful adapter (codex-rollout is a stub), so any natural
@@ -52,22 +52,16 @@ describe("check (manifest-driven)", () => {
       continue
     }
 
-    test(
-      `${target.name}: records match ${output}`,
-      async () => {
-        const report = await checkJsonlAgainstDts(input, outAbs, target.options?.rootName)
-        if (!report.pass) {
-          const sample = report.failures
-            .slice(0, 3)
-            .map((f) => `  #${f.index} ${f.path}: ${f.reason}`)
-            .join("\n")
-          throw new Error(
-            `${target.name}: ${report.failed}/${report.total} records failed:\n${sample}`,
-          )
-        }
-        expect(report.pass).toBe(true)
-      },
-      60_000,
-    )
+    test(`${target.name}: records match ${output}`, async () => {
+      const report = await checkJsonlAgainstDts(input, outAbs, target.options?.rootName)
+      if (!report.pass) {
+        const sample = report.failures
+          .slice(0, 3)
+          .map((f) => `  #${f.index} ${f.path}: ${f.reason}`)
+          .join("\n")
+        throw new Error(`${target.name}: ${report.failed}/${report.total} records failed:\n${sample}`)
+      }
+      expect(report.pass).toBe(true)
+    }, 60_000)
   }
 })

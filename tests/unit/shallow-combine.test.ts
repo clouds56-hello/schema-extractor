@@ -24,9 +24,7 @@ describe("regression: shallow-combine preserves divergent non-prim props", () =>
         { response: [{ kind: "pts", content: { value: "x", uris: {} } }] },
         { response: [{ kind: "other", x: 1 }] },
         {
-          response: [
-            { kind: "pts", content: { value: "y", isTrusted: true, supportThemeIcons: false } },
-          ],
+          response: [{ kind: "pts", content: { value: "y", isTrusted: true, supportThemeIcons: false } }],
         },
       ],
       { rootName: "Evt" },

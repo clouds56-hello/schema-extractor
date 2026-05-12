@@ -24,19 +24,13 @@ describe("examples regression", () => {
       test.skip(`${c.name}: no source files (skipped)`, () => {})
       continue
     }
-    test(
-      `${c.name}: matches committed snapshot`,
-      async () => {
-        const fresh = await extractSchemaFromFiles([c.glob], c.options)
-        const committed = await Bun.file(c.expected).text()
-        if (fresh !== committed) {
-          throw new Error(
-            `${c.expected} drifted from generator output. Run \`bun run regen:examples\` to refresh.`,
-          )
-        }
-        expect(fresh).toBe(committed)
-      },
-      60_000,
-    )
+    test(`${c.name}: matches committed snapshot`, async () => {
+      const fresh = await extractSchemaFromFiles([c.glob], c.options)
+      const committed = await Bun.file(c.expected).text()
+      if (fresh !== committed) {
+        throw new Error(`${c.expected} drifted from generator output. Run \`bun run regen:examples\` to refresh.`)
+      }
+      expect(fresh).toBe(committed)
+    }, 60_000)
   }
 })

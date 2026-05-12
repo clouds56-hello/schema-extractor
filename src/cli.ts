@@ -182,9 +182,7 @@ async function buildTarget(target: Target, manifestPath: string, args: GenArgs):
 async function buildFromManifest(args: GenArgs): Promise<void> {
   const manifestPath = args.configPath ?? findManifest()
   if (!manifestPath) {
-    console.error(
-      "gen: no input. Provide files, pipe stdin via `gen -`, or create schema-extractor.json.",
-    )
+    console.error("gen: no input. Provide files, pipe stdin via `gen -`, or create schema-extractor.json.")
     process.exit(2)
   }
   const manifest: Manifest = loadManifest(manifestPath)
@@ -216,9 +214,7 @@ async function cmdGen(argv: readonly string[]): Promise<void> {
     const webStream = Readable.toWeb(process.stdin) as unknown as ReadableStream<Uint8Array>
     ts = await extractSchemaFromStream(webStream, opts, "<stdin>")
   } else {
-    const onFile = args.quiet
-      ? undefined
-      : (f: string, n: number) => console.error(`[${f}] processed ${n} records`)
+    const onFile = args.quiet ? undefined : (f: string, n: number) => console.error(`[${f}] processed ${n} records`)
     ts = await extractSchemaFromFiles(args.files, opts, onFile)
   }
 
@@ -264,9 +260,7 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
   if (!schemaPath && files.length === 0) {
     const mfPath = configPath ?? findManifest()
     if (!mfPath) {
-      console.error(
-        "check: no input. Provide --schema + files, or create schema-extractor.json.",
-      )
+      console.error("check: no input. Provide --schema + files, or create schema-extractor.json.")
       process.exit(2)
     }
     const manifest = loadManifest(mfPath)
@@ -305,13 +299,7 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
     console.error("check: at least one input file or glob is required")
     process.exit(2)
   }
-  const report = await checkJsonlAgainstDts(
-    files,
-    schemaPath,
-    rootName ?? undefined,
-    undefined,
-    fileLogger(""),
-  )
+  const report = await checkJsonlAgainstDts(files, schemaPath, rootName ?? undefined, undefined, fileLogger(""))
   process.stdout.write(formatReport(report, detail))
   process.exit(report.pass ? 0 : 1)
 }

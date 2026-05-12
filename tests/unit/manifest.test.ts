@@ -1,14 +1,12 @@
 import { describe, expect, test } from "bun:test"
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { findManifest, loadManifest, parseManifest, resolveTargetPaths } from "@/manifest"
 
 describe("parseManifest", () => {
   test("accepts minimal valid manifest", () => {
-    const m = parseManifest(
-      JSON.stringify({ targets: [{ name: "a", input: "x.jsonl", output: "a.d.ts" }] }),
-    )
+    const m = parseManifest(JSON.stringify({ targets: [{ name: "a", input: "x.jsonl", output: "a.d.ts" }] }))
     expect(m.targets).toHaveLength(1)
     expect(m.targets[0]!.name).toBe("a")
   })
@@ -36,15 +34,11 @@ describe("parseManifest", () => {
   })
 
   test("rejects non-string name", () => {
-    expect(() =>
-      parseManifest(JSON.stringify({ targets: [{ name: 1, input: "x", output: "y" }] })),
-    ).toThrow(/name/)
+    expect(() => parseManifest(JSON.stringify({ targets: [{ name: 1, input: "x", output: "y" }] }))).toThrow(/name/)
   })
 
   test("rejects bad input type", () => {
-    expect(() =>
-      parseManifest(JSON.stringify({ targets: [{ name: "a", input: 7, output: "y" }] })),
-    ).toThrow(/input/)
+    expect(() => parseManifest(JSON.stringify({ targets: [{ name: "a", input: 7, output: "y" }] }))).toThrow(/input/)
   })
 
   test("rejects invalid JSON", () => {

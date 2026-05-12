@@ -1,5 +1,5 @@
-import { DEFAULT_ADAPTERS, runAdapters } from "./adapters/index"
 import type { Adapter } from "./adapters/index"
+import { DEFAULT_ADAPTERS, runAdapters } from "./adapters/index"
 import type { CheckReport } from "./check/index"
 import { checkRecords, mergeReport, newReport } from "./check/index"
 import type { ExtractorOptions } from "./config"

@@ -9,7 +9,13 @@ function schemaOf(src: string) {
 describe("checkRecords", () => {
   test("validates matching primitives", () => {
     const root = schemaOf(`export type R = { a: number; b: string; };`)
-    const r = checkRecords([{ a: 1, b: "x" }, { a: 2, b: "y" }], root)
+    const r = checkRecords(
+      [
+        { a: 1, b: "x" },
+        { a: 2, b: "y" },
+      ],
+      root,
+    )
     expect(r.pass).toBe(true)
     expect(r.total).toBe(2)
     expect(r.failed).toBe(0)
@@ -54,7 +60,13 @@ describe("checkRecords", () => {
 
   test("counts type instances", () => {
     const root = schemaOf(`export type R = { a: number; b: string; };`)
-    const r = checkRecords([{ a: 1, b: "x" }, { a: 2, b: "y" }], root)
+    const r = checkRecords(
+      [
+        { a: 1, b: "x" },
+        { a: 2, b: "y" },
+      ],
+      root,
+    )
     expect(r.typeStats.get("object")).toBe(2)
     expect(r.typeStats.get("number")).toBe(2)
     expect(r.typeStats.get("string")).toBe(2)
@@ -87,7 +99,7 @@ describe("checkRecords", () => {
     const r = checkRecords([{ type: "a", x: "nope" }], root)
     expect(r.pass).toBe(false)
     const msg = r.failures[0]!.reason
-    expect(msg).toContain("[type=\"a\"]")
+    expect(msg).toContain('[type="a"]')
     expect(msg).toContain("expected number")
   })
 

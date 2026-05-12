@@ -101,10 +101,7 @@ export function loadManifest(path: string): Manifest {
 }
 
 /** Resolve a target's `output` and `input` paths relative to the manifest dir. */
-export function resolveTargetPaths(
-  target: Target,
-  manifestPath: string,
-): { output: string; input: readonly string[] } {
+export function resolveTargetPaths(target: Target, manifestPath: string): { output: string; input: readonly string[] } {
   const baseDir = dirname(resolve(manifestPath))
   const inputs = (typeof target.input === "string" ? [target.input] : target.input).map((p) => {
     // Tilde-expansion is handled by expandGlobs at consume-time; only resolve

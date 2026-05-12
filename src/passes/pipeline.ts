@@ -1,5 +1,5 @@
-import { TAG_CANDIDATES } from "@/ir/types"
 import type { Schema } from "@/ir/types"
+import { TAG_CANDIDATES } from "@/ir/types"
 import { runtime } from "@/runtime"
 import { applyAutoRecursive } from "./auto-recursive"
 import { applyFieldTagConsolidation } from "./field-tag"
@@ -249,11 +249,7 @@ function runPhase(phase: Phase, opts: PipelineOptions, state: DriverState, iter:
   return res.canonicalFor.size > 0 || newHoistCount > 0 || rootSwapped
 }
 
-function runStructuralDedupe(
-  root: Schema,
-  opts: PipelineOptions,
-  extraHoisted: Iterable<Schema>,
-): PhaseResult {
+function runStructuralDedupe(root: Schema, opts: PipelineOptions, extraHoisted: Iterable<Schema>): PhaseResult {
   const r = applyStructuralDedupe(root, opts.rootName, extraHoisted)
   return { canonicalFor: r.canonicalFor, root: r.root }
 }
@@ -275,6 +271,4 @@ function emitTrace(trace: readonly TraceEntry[]): void {
 export const PIPELINE_PHASE_NAMES: readonly string[] = PHASES.map((p) => p.name)
 
 /** Names of phases that participate in the convergence loop. Exposed for tests. */
-export const PIPELINE_LOOP_PHASE_NAMES: readonly string[] = PHASES.filter((p) => p.loop).map(
-  (p) => p.name,
-)
+export const PIPELINE_LOOP_PHASE_NAMES: readonly string[] = PHASES.filter((p) => p.loop).map((p) => p.name)

@@ -18,7 +18,7 @@ describe("parseDts", () => {
       };
     `
     const { decls } = parseDts(src)
-    const s = decls[0]!.schema as Extract<typeof decls[0]["schema"], { k: "object" }>
+    const s = decls[0]!.schema as Extract<(typeof decls)[0]["schema"], { k: "object" }>
     expect(s.k).toBe("object")
     expect(s.props.size).toBe(3)
     expect(s.props.get("a")!.present).toBe(1)
@@ -38,13 +38,19 @@ describe("parseDts", () => {
     `
     const { decls, order } = parseDts(src)
     expect(order).toEqual(["Uuid", "Foo"])
-    const foo = decls[1]!.schema as Extract<typeof decls[1]["schema"], { k: "object" }>
-    const kind = foo.props.get("kind")!.schema as Extract<typeof foo.props extends Map<string, { schema: infer S; present: number }> ? S : never, { k: "prim" }>
+    const foo = decls[1]!.schema as Extract<(typeof decls)[1]["schema"], { k: "object" }>
+    const kind = foo.props.get("kind")!.schema as Extract<
+      typeof foo.props extends Map<string, { schema: infer S; present: number }> ? S : never,
+      { k: "prim" }
+    >
     expect(kind.k).toBe("prim")
     expect([...(kind.literals ?? [])].sort()).toEqual(["a", "b"])
     expect(foo.props.get("items")!.schema.k).toBe("array")
     expect(foo.props.get("tail")!.schema.k).toBe("array")
-    const m = foo.props.get("map")!.schema as Extract<typeof foo.props extends Map<string, { schema: infer S; present: number }> ? S : never, { k: "record" }>
+    const m = foo.props.get("map")!.schema as Extract<
+      typeof foo.props extends Map<string, { schema: infer S; present: number }> ? S : never,
+      { k: "record" }
+    >
     expect(m.k).toBe("record")
     expect(m.key).toBe("Uuid")
     // alias resolved → value is a prim
@@ -58,7 +64,7 @@ describe("parseDts", () => {
       export type Evt = A | B;
     `
     const { decls } = parseDts(src)
-    const evt = decls[2]!.schema as Extract<typeof decls[2]["schema"], { k: "union" }>
+    const evt = decls[2]!.schema as Extract<(typeof decls)[2]["schema"], { k: "union" }>
     expect(evt.k).toBe("union")
     expect(evt.variants).toHaveLength(2)
     expect(evt.variants[0]!.k).toBe("object")
@@ -70,8 +76,11 @@ describe("parseDts", () => {
       export type Tree = { value: number; children: Tree[]; };
     `
     const { decls } = parseDts(src)
-    const t = decls[0]!.schema as Extract<typeof decls[0]["schema"], { k: "object" }>
-    const children = t.props.get("children")!.schema as Extract<typeof t.props extends Map<string, { schema: infer S; present: number }> ? S : never, { k: "array" }>
+    const t = decls[0]!.schema as Extract<(typeof decls)[0]["schema"], { k: "object" }>
+    const children = t.props.get("children")!.schema as Extract<
+      typeof t.props extends Map<string, { schema: infer S; present: number }> ? S : never,
+      { k: "array" }
+    >
     expect(children.k).toBe("array")
     expect(children.item.k).toBe("any")
   })

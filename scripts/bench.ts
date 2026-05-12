@@ -6,9 +6,9 @@
  * Usage: bun scripts/bench.ts [--config path]
  */
 import { checkJsonlAgainstDts, extractSchemaFromFiles } from "@/index"
-import { findManifest, loadManifest, resolveTargetPaths } from "@/manifest"
 import { expandGlobs } from "@/input/glob"
 import { openSource, parseJsonl } from "@/input/jsonl"
+import { findManifest, loadManifest, resolveTargetPaths } from "@/manifest"
 
 function fmt(n: number, w = 8): string {
   return n.toLocaleString("en-US", { maximumFractionDigits: 1 }).padStart(w)
