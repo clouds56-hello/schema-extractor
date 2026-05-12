@@ -1,5 +1,6 @@
 import type { Schema } from "@/ir/types"
 import { TAG_CANDIDATES } from "@/ir/types"
+import type { Parameters } from "@/parameters"
 import type { NamePlugin } from "@/plugins/index"
 import { runtime } from "@/runtime"
 import { applyAutoRecursive } from "./auto-recursive"
@@ -21,6 +22,7 @@ export interface PipelineOptions {
   dedupHints: ReadonlyArray<readonly [string, string]>
   multiTagHints: readonly string[]
   plugins: readonly NamePlugin[]
+  parameters: Parameters
 }
 
 export interface PipelineResult {
@@ -131,17 +133,21 @@ const PHASES: readonly Phase[] = [
     loop: true,
     run: (root, o) => {
       // Driver injects extraHoisted via runStructuralDedupe wrapper below.
-      const r = applyStructuralDedupe(root, o.rootName, [])
+      const r = applyStructuralDedupe(root, o.rootName, [], o.parameters["structural-dedupe.max-passes"]!)
       return { canonicalFor: r.canonicalFor, root: r.root }
     },
   },
   {
-    // Final mop-up: any object IR with ≥2 parent references becomes a named
-    // decl so the renderer doesn't emit identical bodies inline N times.
+    // Final mop-up: any object IR with ≥minRefs parent references becomes a
+    // named decl so the renderer doesn't emit identical bodies inline N times.
     // Pure name-addition; not loop-eligible (no IR shape changes).
     name: "hoist-shared",
     emitsHoists: true,
-    run: (root) => applyHoistShared(root, new Set()),
+    run: (root, o) =>
+      applyHoistShared(root, new Set(), {
+        minKeys: o.parameters["hoist-shared.min-keys"]!,
+        minRefs: o.parameters["hoist-shared.min-refs"]!,
+      }),
   },
   {
     // Domain knowledge layer: bundled plugins (default: vscode) inspect each
@@ -161,9 +167,9 @@ const PHASES: readonly Phase[] = [
  * Maximum number of convergence iterations after the initial sweep. Each
  * iteration re-runs the loop-marked phases. A bound prevents pathological
  * non-monotonic interactions from spinning forever; if hit, a warning is
- * printed to stderr (always, not gated on trace).
+ * printed to stderr (always, not gated on trace). Configurable via
+ * `parameters["pipeline.convergence-cap"]`.
  */
-const CONVERGENCE_CAP = 4
 
 interface TraceEntry {
   name: string
@@ -209,9 +215,10 @@ export function runPipeline(root: Schema, opts: PipelineOptions): PipelineResult
 
   // Convergence loop: re-run loop-marked phases until quiescent.
   const loopPhases = PHASES.filter((p) => p.loop)
+  const convergenceCap = opts.parameters["pipeline.convergence-cap"]!
   let converged = false
   let iter = 0
-  for (iter = 1; iter <= CONVERGENCE_CAP; iter++) {
+  for (iter = 1; iter <= convergenceCap; iter++) {
     let progressed = false
     for (const phase of loopPhases) {
       if (runPhase(phase, opts, state, iter)) progressed = true
@@ -223,7 +230,7 @@ export function runPipeline(root: Schema, opts: PipelineOptions): PipelineResult
   }
   if (!converged) {
     console.error(
-      `[pipeline] convergence cap (${CONVERGENCE_CAP}) reached without stabilizing — re-run with --trace-pipeline to inspect`,
+      `[pipeline] convergence cap (${convergenceCap}) reached without stabilizing — re-run with --trace-pipeline to inspect`,
     )
   }
 
@@ -242,7 +249,7 @@ function runPhase(phase: Phase, opts: PipelineOptions, state: DriverState, iter:
       : phase.name === "inline-equivalent"
         ? runInlineEquivalent(state.root, state.hoistedSet)
         : phase.name === "hoist-shared"
-          ? runHoistShared(state.root, state.hoistedSet)
+          ? runHoistShared(state.root, state.hoistedSet, opts)
           : phase.run(state.root, opts)
 
   const rootSwapped = res.root !== undefined && res.root !== state.root
@@ -290,7 +297,7 @@ function runPhase(phase: Phase, opts: PipelineOptions, state: DriverState, iter:
 }
 
 function runStructuralDedupe(root: Schema, opts: PipelineOptions, extraHoisted: Iterable<Schema>): PhaseResult {
-  const r = applyStructuralDedupe(root, opts.rootName, extraHoisted)
+  const r = applyStructuralDedupe(root, opts.rootName, extraHoisted, opts.parameters["structural-dedupe.max-passes"]!)
   return { canonicalFor: r.canonicalFor, root: r.root }
 }
 
@@ -299,8 +306,11 @@ function runInlineEquivalent(root: Schema, hoistedSet: ReadonlySet<Schema>): Pha
   return { canonicalFor: r.canonicalFor }
 }
 
-function runHoistShared(root: Schema, hoistedSet: ReadonlySet<Schema>): PhaseResult {
-  const r = applyHoistShared(root, hoistedSet)
+function runHoistShared(root: Schema, hoistedSet: ReadonlySet<Schema>, opts: PipelineOptions): PhaseResult {
+  const r = applyHoistShared(root, hoistedSet, {
+    minKeys: opts.parameters["hoist-shared.min-keys"]!,
+    minRefs: opts.parameters["hoist-shared.min-refs"]!,
+  })
   return { canonicalFor: r.canonicalFor, newHoists: r.newHoists, hoistNames: r.hoistNames }
 }
 

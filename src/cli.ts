@@ -9,6 +9,7 @@ import {
   simplifyDts,
 } from "./index"
 import { findManifest, loadManifest, type Manifest, resolveTargetPaths, type Target } from "./manifest"
+import { mergeParameters, type Parameters, parseParameterPair } from "./parameters"
 import { setPipelineTrace } from "./runtime"
 
 interface GenArgs {
@@ -20,6 +21,7 @@ interface GenArgs {
   hint: Array<readonly [string, string]>
   recordHint: string[]
   multiTagHint: string[]
+  param: Array<readonly [string, number]>
   files: string[]
   configPath: string | null
   stdin: boolean
@@ -62,6 +64,8 @@ Options:
   --hint <Scope:Name>   Add a dedup hint (repeatable). Format: "ScopePrefix:NamePrefix"
   --record-hint <Seg>   Add a record-collapse hint (repeatable)
   --multi-tag <Key>     Add a global-tag hint (repeatable)
+  --param <key=value>   Override a pipeline parameter (repeatable). See agents.md
+                        § Parameters for known keys (e.g. hoist-shared.min-keys=3)
   --trace-pipeline      Log per-phase timings + rewrite counts to stderr
   -q, --quiet           Suppress per-file progress logs
   -h, --help            Show this help
@@ -87,6 +91,8 @@ Options:
   --config <path>       Manifest path (overrides walk-up discovery)
   --schema <path>       Path to .d.ts schema (required for explicit mode)
   --root <Name>         Which exported type to validate against (default: last)
+  --param <key=value>   Override a parameter (repeatable). Only check.failure-cap
+                        affects check; others are accepted but ignored.
   --detail              Also print per-field instance counts
   -q, --quiet           Suppress per-file progress logs (only summary)
   -h, --help            Show this help
@@ -107,6 +113,7 @@ Options:
   --in <path>           Input .d.ts (required)
   --out <path>          Output path (default: stdout)
   --name <Root>         Override root type name
+  --param <key=value>   Override a pipeline parameter (repeatable)
   -h, --help            Show this help
 `,
   )
@@ -122,6 +129,7 @@ function parseGenArgs(argv: readonly string[]): GenArgs {
     hint: [],
     recordHint: [],
     multiTagHint: [],
+    param: [],
     files: [],
     configPath: null,
     stdin: false,
@@ -149,7 +157,15 @@ function parseGenArgs(argv: readonly string[]): GenArgs {
       a.hint.push([v.slice(0, idx), v.slice(idx + 1)] as const)
     } else if (x === "--record-hint") a.recordHint.push(argv[++i] ?? "")
     else if (x === "--multi-tag") a.multiTagHint.push(argv[++i] ?? "")
-    else if (x === "-h" || x === "--help") {
+    else if (x === "--param") {
+      const v = argv[++i] ?? ""
+      try {
+        a.param.push(parseParameterPair(v))
+      } catch (e) {
+        console.error((e as Error).message)
+        process.exit(2)
+      }
+    } else if (x === "-h" || x === "--help") {
       printGenHelp()
       process.exit(0)
     } else if (x.startsWith("--")) {
@@ -172,6 +188,12 @@ function mergeOptions(targetOpts: ExtractorOptions | undefined, args: GenArgs): 
   if (args.hint.length) out.dedupHints = args.hint
   if (args.recordHint.length) out.recordHints = args.recordHint
   if (args.multiTagHint.length) out.multiTagHints = args.multiTagHint
+  if (args.param.length) {
+    const override: Record<string, number> = {}
+    for (const [k, v] of args.param) override[k] = v
+    // Validate + merge against existing target params (manifest level).
+    out.parameters = mergeParameters((out.parameters ?? {}) as Parameters, override)
+  }
   return out
 }
 
@@ -239,6 +261,7 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
   let detail = false
   let configPath: string | null = null
   let quiet = false
+  const paramArg: Array<readonly [string, number]> = []
   const files: string[] = []
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i]!
@@ -247,7 +270,15 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
     else if (x === "--detail") detail = true
     else if (x === "--config") configPath = argv[++i] ?? null
     else if (x === "-q" || x === "--quiet") quiet = true
-    else if (x === "-h" || x === "--help") {
+    else if (x === "--param") {
+      const v = argv[++i] ?? ""
+      try {
+        paramArg.push(parseParameterPair(v))
+      } catch (e) {
+        console.error((e as Error).message)
+        process.exit(2)
+      }
+    } else if (x === "-h" || x === "--help") {
       printCheckHelp()
       return
     } else if (x.startsWith("--")) {
@@ -261,6 +292,11 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
     const status = r.pass ? "OK" : "FAIL"
     const reason = r.pass ? "" : ` (${r.failures[0]?.reason ?? "unknown"})`
     process.stdout.write(`${prefix}[${f}] ${status} ${r.total - r.failed}/${r.total}${reason}\n`)
+  }
+
+  const checkOpts: import("./check/index").CheckOptions = {}
+  for (const [k, v] of paramArg) {
+    if (k === "check.failure-cap") checkOpts.failureCap = v
   }
 
   // Manifest mode: no --schema and no positional files.
@@ -285,6 +321,7 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
           t.options?.rootName,
           undefined,
           fileLogger(`[${t.name}] `),
+          checkOpts,
         )
         const status = report.pass ? "OK" : "FAIL"
         process.stdout.write(`[${t.name}] ${status} ${report.total - report.failed}/${report.total}\n`)
@@ -306,7 +343,7 @@ async function cmdCheck(argv: readonly string[]): Promise<void> {
     console.error("check: at least one input file or glob is required")
     process.exit(2)
   }
-  const report = await checkJsonlAgainstDts(files, schemaPath, rootName ?? undefined, undefined, fileLogger(""))
+  const report = await checkJsonlAgainstDts(files, schemaPath, rootName ?? undefined, undefined, fileLogger(""), checkOpts)
   process.stdout.write(formatReport(report, detail))
   process.exit(report.pass ? 0 : 1)
 }
@@ -315,12 +352,21 @@ async function cmdSimplify(argv: readonly string[]): Promise<void> {
   let inPath: string | null = null
   let outPath: string | null = null
   let name: string | null = null
+  const paramArg: Array<readonly [string, number]> = []
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i]!
     if (x === "--in") inPath = argv[++i] ?? null
     else if (x === "--out") outPath = argv[++i] ?? null
     else if (x === "--name") name = argv[++i] ?? null
-    else if (x === "-h" || x === "--help") {
+    else if (x === "--param") {
+      const v = argv[++i] ?? ""
+      try {
+        paramArg.push(parseParameterPair(v))
+      } catch (e) {
+        console.error((e as Error).message)
+        process.exit(2)
+      }
+    } else if (x === "-h" || x === "--help") {
       printSimplifyHelp()
       return
     } else {
@@ -335,6 +381,11 @@ async function cmdSimplify(argv: readonly string[]): Promise<void> {
   const src = await Bun.file(inPath).text()
   const opts: ExtractorOptions = {}
   if (name) opts.rootName = name
+  if (paramArg.length) {
+    const override: Record<string, number> = {}
+    for (const [k, v] of paramArg) override[k] = v
+    opts.parameters = mergeParameters({} as Parameters, override)
+  }
   const out = simplifyDts(src, opts)
   if (outPath) {
     await Bun.write(outPath, out)

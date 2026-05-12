@@ -35,6 +35,7 @@ export function applyStructuralDedupe(
   root: Schema,
   rootName: string,
   extraHoisted: Iterable<Schema>,
+  maxPasses: number,
 ): StructuralDedupeResult {
   const canonicalFor = new Map<Schema, Schema>()
 
@@ -103,7 +104,7 @@ export function applyStructuralDedupe(
     // optional. (canon.total has been incremented; props.present too.)
   }
 
-  for (let pass = 0; pass < 16; pass++) {
+  for (let pass = 0; pass < maxPasses; pass++) {
     const candidates = collectCandidates()
     if (candidates.size < 2) break
 

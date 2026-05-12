@@ -63,6 +63,20 @@
               "type": "array",
               "description": "Names of bundled NamePlugins to enable for this target. Omitting this field means NO plugins are loaded — each target must opt in explicitly. Use [\"vscode\"] for the bundled VSCode plugin.",
               "items": { "type": "string", "enum": ["vscode"] }
+            },
+            "parameters": {
+              "type": "object",
+              "description": "Numeric overrides for pipeline thresholds. Keys are validated against the known parameter set; values must be non-negative integers. CLI --param overrides take precedence.",
+              "additionalProperties": { "type": "integer", "minimum": 0 },
+              "propertyNames": {
+                "enum": [
+                  "hoist-shared.min-keys",
+                  "hoist-shared.min-refs",
+                  "pipeline.convergence-cap",
+                  "structural-dedupe.max-passes",
+                  "check.failure-cap"
+                ]
+              }
             }
           }
         }

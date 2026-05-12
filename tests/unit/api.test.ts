@@ -20,4 +20,16 @@ describe("public API", () => {
     expect(ts).toMatch(/op:\s*"add"/)
     expect(ts).toMatch(/op:\s*"del"/)
   })
+
+  test("parameters: unknown key throws at config resolution", () => {
+    expect(() => extractSchema([{ a: 1 }], { rootName: "X", parameters: { "bogus.key": 1 } })).toThrow(
+      /unknown parameter "bogus\.key"/,
+    )
+  })
+
+  test("parameters: invalid value (negative) throws", () => {
+    expect(() =>
+      extractSchema([{ a: 1 }], { rootName: "X", parameters: { "hoist-shared.min-keys": -1 } }),
+    ).toThrow(/non-negative/)
+  })
 })

@@ -9,6 +9,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { dirname, isAbsolute, resolve } from "node:path"
 import type { ExtractorOptions } from "./config"
 import { resolvePluginNames } from "./plugins/index"
+import { mergeParameters } from "./parameters"
 
 export interface Target {
   /** Stable identifier for logging / test naming. */
@@ -77,6 +78,16 @@ function parseOptions(raw: Record<string, unknown>, idx: number): ExtractorOptio
   } else {
     // Explicit: omitted means no plugins. Targets must opt in.
     opts.plugins = []
+  }
+  if (raw.parameters !== undefined) {
+    if (typeof raw.parameters !== "object" || raw.parameters === null || Array.isArray(raw.parameters)) {
+      throw new Error(`manifest.targets[${idx}].options.parameters: expected object<string, number>`)
+    }
+    try {
+      opts.parameters = mergeParameters({}, raw.parameters as Record<string, number>)
+    } catch (e) {
+      throw new Error(`manifest.targets[${idx}].options.parameters: ${(e as Error).message}`)
+    }
   }
   return opts
 }

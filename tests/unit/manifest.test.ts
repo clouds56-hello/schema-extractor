@@ -74,6 +74,51 @@ describe("parseManifest", () => {
       ),
     ).toThrow(/plugins.*string/)
   })
+
+  test("options.parameters validates and applies overrides", () => {
+    const m = parseManifest(
+      JSON.stringify({
+        targets: [
+          {
+            name: "a",
+            input: "x",
+            output: "y",
+            options: { parameters: { "hoist-shared.min-keys": 5, "hoist-shared.min-refs": 3 } },
+          },
+        ],
+      }),
+    )
+    expect(m.targets[0]!.options?.parameters?.["hoist-shared.min-keys"]).toBe(5)
+    expect(m.targets[0]!.options?.parameters?.["hoist-shared.min-refs"]).toBe(3)
+  })
+
+  test("options.parameters rejects unknown key", () => {
+    expect(() =>
+      parseManifest(
+        JSON.stringify({
+          targets: [{ name: "a", input: "x", output: "y", options: { parameters: { "bogus.key": 1 } } }],
+        }),
+      ),
+    ).toThrow(/unknown parameter "bogus\.key"/)
+  })
+
+  test("options.parameters rejects non-object", () => {
+    expect(() =>
+      parseManifest(
+        JSON.stringify({ targets: [{ name: "a", input: "x", output: "y", options: { parameters: [1, 2] } }] }),
+      ),
+    ).toThrow(/parameters.*expected object/)
+  })
+
+  test("options.parameters rejects negative value", () => {
+    expect(() =>
+      parseManifest(
+        JSON.stringify({
+          targets: [{ name: "a", input: "x", output: "y", options: { parameters: { "hoist-shared.min-keys": -1 } } }],
+        }),
+      ),
+    ).toThrow(/non-negative/)
+  })
 })
 
 describe("findManifest + loadManifest", () => {

@@ -54,6 +54,18 @@ describe("vscode plugin", () => {
     const c = collectContributions([vscodePlugin, vscodePlugin])
     expect(c.multiTagHints.filter((t) => t === "$mid")).toHaveLength(1)
   })
+
+  test("collectContributions merges parameters (last-wins)", () => {
+    const a = { name: "a", contribute: () => ({ parameters: { "hoist-shared.min-keys": 5 } }) }
+    const b = { name: "b", contribute: () => ({ parameters: { "hoist-shared.min-keys": 9 } }) }
+    const c = collectContributions([a, b])
+    expect(c.parameters["hoist-shared.min-keys"]).toBe(9)
+  })
+
+  test("collectContributions rejects unknown parameter key", () => {
+    const p = { name: "bad", contribute: () => ({ parameters: { "bogus.key": 1 } }) }
+    expect(() => collectContributions([p])).toThrow(/unknown parameter/)
+  })
 })
 
 describe("resolvePluginNames", () => {

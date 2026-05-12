@@ -19,6 +19,8 @@ export interface PluginContribution {
   multiTagHints?: readonly string[]
   dedupHints?: ReadonlyArray<readonly [string, string]>
   recordHints?: readonly string[]
+  /** Partial parameter overrides; keys validated against KNOWN_PARAMETER_KEYS. */
+  parameters?: Readonly<Record<string, number>>
 }
 
 export interface PluginCtx {

@@ -1,5 +1,6 @@
 import type { Adapter } from "./adapters/index"
 import { DEFAULT_ADAPTERS } from "./adapters/index"
+import { DEFAULT_PARAMETERS, mergeParameters, type Parameters } from "./parameters"
 import { collectContributions, DEFAULT_PLUGINS, type NamePlugin } from "./plugins/index"
 
 export interface ExtractorOptions {
@@ -17,6 +18,8 @@ export interface ExtractorOptions {
   adapters?: readonly Adapter[]
   /** Naming/hoisting plugins. Defaults to all built-ins; pass `[]` to disable. */
   plugins?: readonly NamePlugin[]
+  /** Pipeline parameter overrides; merged onto DEFAULT_PARAMETERS. See src/parameters.ts. */
+  parameters?: Readonly<Record<string, number>>
   /** Override the file header comment. */
   header?: string
 }
@@ -29,6 +32,7 @@ export interface ResolvedOptions {
   multiTagHints: readonly string[]
   adapters: readonly Adapter[]
   plugins: readonly NamePlugin[]
+  parameters: Parameters
   header: string | undefined
 }
 
@@ -43,6 +47,9 @@ const DEFAULT_MULTI_TAG_HINTS: readonly string[] = []
 export function resolveOptions(opts: ExtractorOptions = {}): ResolvedOptions {
   const plugins = opts.plugins ?? DEFAULT_PLUGINS
   const contrib = collectContributions(plugins)
+  // Parameter precedence: defaults < plugin contributions < explicit user opts.
+  const withPluginParams = mergeParameters(DEFAULT_PARAMETERS, contrib.parameters)
+  const parameters = mergeParameters(withPluginParams, opts.parameters)
   return {
     rootName: opts.rootName ?? "Root",
     userTagKey: opts.userTagKey ?? null,
@@ -54,6 +61,7 @@ export function resolveOptions(opts: ExtractorOptions = {}): ResolvedOptions {
     multiTagHints: [...contrib.multiTagHints, ...(opts.multiTagHints ?? DEFAULT_MULTI_TAG_HINTS)],
     adapters: opts.adapters ?? DEFAULT_ADAPTERS,
     plugins,
+    parameters,
     header: opts.header,
   }
 }

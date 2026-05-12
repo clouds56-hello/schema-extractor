@@ -1,6 +1,6 @@
 import type { Adapter } from "./adapters/index"
 import { DEFAULT_ADAPTERS, runAdapters } from "./adapters/index"
-import type { CheckReport } from "./check/index"
+import type { CheckOptions, CheckReport } from "./check/index"
 import { checkRecords, mergeReport, newReport } from "./check/index"
 import type { ExtractorOptions } from "./config"
 import { resolveOptions } from "./config"
@@ -35,6 +35,7 @@ function emitDocument(root: Schema, opts: ReturnType<typeof resolveOptions>): st
     dedupHints: opts.dedupHints,
     multiTagHints: opts.multiTagHints,
     plugins: opts.plugins,
+    parameters: opts.parameters,
   })
   const ctx = makeEmitCtx([opts.rootName])
   ctx.hoistedSet = piped.hoistedSet
@@ -132,6 +133,7 @@ export async function checkJsonlAgainstDts(
   rootName?: string,
   adapters: readonly Adapter[] = DEFAULT_ADAPTERS,
   onFile?: (file: string, report: CheckReport) => void,
+  checkOpts?: CheckOptions,
 ): Promise<CheckReport> {
   const dtsSrc = await Bun.file(schemaPath).text()
   const { decls } = parseDts(dtsSrc)
@@ -155,9 +157,9 @@ export async function checkJsonlAgainstDts(
       materialized = a.transform(recs)
       break
     }
-    const sub = checkRecords(materialized, root)
+    const sub = checkRecords(materialized, root, checkOpts)
     if (onFile) onFile(f, sub)
-    mergeReport(total, sub)
+    mergeReport(total, sub, checkOpts)
   }
   return total
 }

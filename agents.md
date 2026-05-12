@@ -128,9 +128,22 @@ Schema in `schema-extractor.schema.json` (draft-07). Walk-up discovery from CWD 
 
 **Per-target plugins** (`options.plugins: string[]`): names are resolved against `BUILTIN_PLUGINS` in `src/plugins/index.ts` via `resolvePluginNames`. **Opt-in semantics**: omitting `options.plugins` means *no plugins*, not "use defaults". Each target must explicitly list `["vscode"]` (or whatever) to enable plugin behavior. Unknown names throw at parse time. CLI mode (no manifest) still falls back to `DEFAULT_PLUGINS`.
 
+### Parameters (`src/parameters.ts`)
+Numeric tunables for pipeline passes live in a single flat namespace `<pass>.<param>` (kebab-case). Source of truth: `DEFAULT_PARAMETERS` — adding a key there is the only step required to register it. Validation (`mergeParameters`) rejects unknown keys and non-negative-integer values; `parseParameterPair` parses `key=value` for the CLI.
+
+| Key | Default | Effect |
+| --- | --- | --- |
+| `hoist-shared.min-keys` | 2 | Min object keys before `hoist-shared` will name an inline shape |
+| `hoist-shared.min-refs` | 2 | Min parent references before `hoist-shared` promotes |
+| `pipeline.convergence-cap` | 4 | Max convergence iterations after the initial sweep |
+| `structural-dedupe.max-passes` | 16 | Max internal passes inside `structural-dedupe` |
+| `check.failure-cap` | 20 | Max failures retained per `CheckReport` |
+
+**Precedence (highest wins)**: CLI `--param key=value` (repeatable) > manifest `target.options.parameters` > plugin `contribute().parameters` (last-plugin-wins) > `DEFAULT_PARAMETERS`. CLI parsing lives in `src/cli.ts` for `gen`, `check`, and `simplify`. Plugins contribute via the same flat schema; collected by `collectContributions` in `src/plugins/index.ts`.
+
 ### Validation (`check/`)
 - `checkRecords(records, schema)` — produces `CheckReport { pass, total, failed, typeStats, fieldStats, failures }`.
-- `mergeReport(into, add)` — aggregates per-file reports while preserving the global 20-failure cap (used by `checkJsonlAgainstDts` to support per-file callbacks).
+- `mergeReport(into, add)` — aggregates per-file reports while preserving the failure cap (default 20, overridable via `parameters["check.failure-cap"]` or the `failureCap` option on `checkRecords`/`checkJsonlAgainstDts`).
 - `formatReport(report, detail)` — human summary; `--detail` adds per-field counts.
 - Union dispatch fast path: `pickTagDispatch` checks tag literals on object variants and validates against the matching variant directly. Avoids O(N) per-variant snapshot/restore of stats Maps that previously made deeply-nested untagged unions hang on real-world inputs.
 

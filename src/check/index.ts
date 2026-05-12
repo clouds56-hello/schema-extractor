@@ -18,7 +18,7 @@ export interface CheckReport {
   failures: Array<{ index: number; path: string; reason: string }>
 }
 
-const FAILURE_CAP = 20
+// FAILURE_CAP is configurable via CheckOptions.failureCap. Default below.
 
 export function newReport(): CheckReport {
   return {
@@ -209,7 +209,19 @@ function checkValue(value: unknown, schema: Schema, report: CheckReport, path: s
   }
 }
 
-export function checkRecords(records: readonly unknown[], schema: Schema): CheckReport {
+const DEFAULT_FAILURE_CAP = 20
+
+export interface CheckOptions {
+  /** Max failures retained per report. Default: 20. */
+  failureCap?: number
+}
+
+export function checkRecords(
+  records: readonly unknown[],
+  schema: Schema,
+  opts: CheckOptions = {},
+): CheckReport {
+  const cap = opts.failureCap ?? DEFAULT_FAILURE_CAP
   const report = newReport()
   for (let i = 0; i < records.length; i++) {
     report.total++
@@ -217,7 +229,7 @@ export function checkRecords(records: readonly unknown[], schema: Schema): Check
     if (err !== null) {
       report.pass = false
       report.failed++
-      if (report.failures.length < FAILURE_CAP) {
+      if (report.failures.length < cap) {
         report.failures.push({ index: i, path: "<root>", reason: err })
       }
     }
@@ -226,7 +238,8 @@ export function checkRecords(records: readonly unknown[], schema: Schema): Check
 }
 
 /** Aggregate `add` into `into` (mutates `into`). Failures retain global cap. */
-export function mergeReport(into: CheckReport, add: CheckReport): void {
+export function mergeReport(into: CheckReport, add: CheckReport, opts: CheckOptions = {}): void {
+  const cap = opts.failureCap ?? DEFAULT_FAILURE_CAP
   into.total += add.total
   into.failed += add.failed
   if (!add.pass) into.pass = false
@@ -238,7 +251,7 @@ export function mergeReport(into: CheckReport, add: CheckReport): void {
     into.fieldStats.set(k, cur)
   }
   for (const f of add.failures) {
-    if (into.failures.length >= FAILURE_CAP) break
+    if (into.failures.length >= cap) break
     into.failures.push(f)
   }
 }

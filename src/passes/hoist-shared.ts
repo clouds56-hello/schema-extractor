@@ -10,22 +10,33 @@ export interface HoistSharedResult {
 }
 
 /**
- * Phase: hoist any object IR that has ≥2 parent references to a named decl.
+ * Phase: hoist any object IR that has ≥minRefs parent references to a named
+ * decl.
  *
  * Walks `root`, counting each object IR's reference count. Any object with
- * `refCount >= 2 && props.size >= MIN_KEYS && !hoistedSet.has(s)` becomes a
- * new hoist. Names use `<FieldHint>_Shared_<hash>` where `FieldHint` is the
+ * `refCount >= minRefs && props.size >= minKeys && !hoistedSet.has(s)` becomes
+ * a new hoist. Names use `<FieldHint>_Shared_<hash>` where `FieldHint` is the
  * pascal-cased name of the parent field most recently observed for that ref.
  *
  * Pure addition — produces no canonical rewrites. Designed as a final
  * mop-up after structural-dedupe so the renderer doesn't emit identical
  * shape bodies inline N times. Not loop-eligible: only adds names; doesn't
  * change IR shape, so it can't trigger further phase work.
+ *
+ * Thresholds `minKeys` and `minRefs` are configurable via the `parameters`
+ * map (`hoist-shared.min-keys`, `hoist-shared.min-refs`). Defaults live in
+ * `src/parameters.ts`.
  */
-const MIN_KEYS = 2
-const MIN_REFS = 2
+export interface HoistSharedParams {
+  minKeys: number
+  minRefs: number
+}
 
-export function applyHoistShared(root: Schema, hoistedSet: ReadonlySet<Schema>): HoistSharedResult {
+export function applyHoistShared(
+  root: Schema,
+  hoistedSet: ReadonlySet<Schema>,
+  params: HoistSharedParams,
+): HoistSharedResult {
   // Render-time auto-promoted union variants get tag-derived names that are
   // strictly more informative than our generic `_Shared_<hash>`. Skip those.
   // An untagged variant (`leaf === "Variant"`) yields a name no better than
@@ -65,8 +76,8 @@ export function applyHoistShared(root: Schema, hoistedSet: ReadonlySet<Schema>):
   // Sort for deterministic output: most-referenced first, then by hash.
   const candidates: Array<Schema & { k: "object" }> = []
   for (const [ir, n] of refCount) {
-    if (n < MIN_REFS) continue
-    if (ir.props.size < MIN_KEYS) continue
+    if (n < params.minRefs) continue
+    if (ir.props.size < params.minKeys) continue
     if (hoistedSet.has(ir)) continue
     if (taggedVariant.has(ir)) continue
     candidates.push(ir)
