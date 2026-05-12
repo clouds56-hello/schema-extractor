@@ -8,6 +8,7 @@ import {
   simplifyDts,
 } from "./index"
 import { findManifest, loadManifest, type Manifest, resolveTargetPaths, type Target } from "./manifest"
+import { setPipelineTrace } from "./runtime"
 
 interface GenArgs {
   out: string | null
@@ -21,6 +22,7 @@ interface GenArgs {
   configPath: string | null
   stdin: boolean
   quiet: boolean
+  tracePipeline: boolean
 }
 
 function printRootHelp(): void {
@@ -57,6 +59,7 @@ Options:
   --hint <Scope:Name>   Add a dedup hint (repeatable). Format: "ScopePrefix:NamePrefix"
   --record-hint <Seg>   Add a record-collapse hint (repeatable)
   --multi-tag <Key>     Add a global-tag hint (repeatable)
+  --trace-pipeline      Log per-phase timings + rewrite counts to stderr
   -q, --quiet           Suppress per-file progress logs
   -h, --help            Show this help
 `,
@@ -119,6 +122,7 @@ function parseGenArgs(argv: readonly string[]): GenArgs {
     configPath: null,
     stdin: false,
     quiet: false,
+    tracePipeline: false,
   }
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i]!
@@ -129,6 +133,7 @@ function parseGenArgs(argv: readonly string[]): GenArgs {
     else if (x === "--tag") a.tag = argv[++i] ?? null
     else if (x === "--no-adapters") a.noAdapters = true
     else if (x === "-q" || x === "--quiet") a.quiet = true
+    else if (x === "--trace-pipeline") a.tracePipeline = true
     else if (x === "--hint") {
       const v = argv[++i] ?? ""
       const idx = v.indexOf(":")
@@ -194,6 +199,7 @@ async function buildFromManifest(args: GenArgs): Promise<void> {
 
 async function cmdGen(argv: readonly string[]): Promise<void> {
   const args = parseGenArgs(argv)
+  if (args.tracePipeline) setPipelineTrace(true)
 
   // No positional args and no `-` → manifest-driven build.
   if (!args.stdin && args.files.length === 0) {
