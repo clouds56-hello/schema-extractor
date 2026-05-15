@@ -4,6 +4,7 @@ import {
   descendRecord,
   descendVariant,
   descendVariantFallback,
+  pascal,
   type PathCtx,
   ROOT_CTX,
 } from "@/emit/name"
@@ -12,13 +13,14 @@ import { merge } from "@/ir/merge"
 import { pickTagLiteral } from "@/ir/tags"
 import type { Schema } from "@/ir/types"
 import { NEVER } from "@/ir/types"
+import type { RecordHint } from "@/plugins/index"
 
 /**
  * Phase 0: collapse alias-keyed objects (e.g., all-Path-keyed) into
- * `Record<KeyAlias, V>`. Also force-recordifies objects whose oldChain matches
- * a `recordHints` entry — those become `Record<string, V>` regardless of key shape.
+ * `Record<KeyAlias, V>`. Also force-recordifies objects whose current field or
+ * path segment matches a `recordHints` entry.
  */
-export function applyRecordify(root: Schema, rootName: string, recordHints: readonly string[]): Map<Schema, Schema> {
+export function applyRecordify(root: Schema, rootName: string, recordHints: readonly RecordHint[]): Map<Schema, Schema> {
   const canonicalFor = new Map<Schema, Schema>()
   const seen = new Set<Schema>()
 
@@ -46,12 +48,9 @@ export function applyRecordify(root: Schema, rootName: string, recordHints: read
         for (const [k, prop] of s.props) walk(prop.schema, descendField(p, k))
         if (s.props.size === 0) return
         const keys = [...s.props.keys()]
-        const hinted = (() => {
-          const padded = `_${p.old}_`
-          return recordHints.some((h) => padded.includes(`_${h}_`))
-        })()
-        const alias = hinted ? "string" : detectKeyAlias(keys)
-        if (!hinted && alias === "string") return
+        const hintAlias = pickRecordHintAlias(p, recordHints)
+        const alias = hintAlias ?? detectKeyAlias(keys)
+        if (!hintAlias && alias === "string") return
         let val: Schema = NEVER
         for (const { schema } of s.props.values()) val = merge(val, schema)
         canonicalFor.set(s, { k: "record", key: alias, value: val })
@@ -64,4 +63,18 @@ export function applyRecordify(root: Schema, rootName: string, recordHints: read
 
   walk(root, ROOT_CTX(rootName))
   return canonicalFor
+}
+
+function pickRecordHintAlias(p: PathCtx, recordHints: readonly RecordHint[]): string | null {
+  const oldSegment = p.old.split("_").at(-1) ?? ""
+  for (const hint of recordHints) {
+    if (typeof hint === "string") {
+      const name = pascal(hint)
+      if (p.field === hint || pascal(p.field) === name || oldSegment === name) return "string"
+      continue
+    }
+    const name = pascal(hint.field)
+    if (p.field === hint.field || pascal(p.field) === name || oldSegment === name) return hint.key
+  }
+  return null
 }

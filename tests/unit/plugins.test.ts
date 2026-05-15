@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import type { Schema } from "@/ir/types"
-import { collectContributions, DEFAULT_PLUGINS, resolvePluginNames, vscodePlugin } from "@/plugins/index"
+import { collectContributions, copilotCliPlugin, DEFAULT_PLUGINS, resolvePluginNames, vscodePlugin } from "@/plugins/index"
 
 function obj(props: Record<string, Schema>): Schema & { k: "object" } {
   const m = new Map<string, { schema: Schema; present: number }>()
@@ -55,6 +55,11 @@ describe("vscode plugin", () => {
     expect(c.multiTagHints.filter((t) => t === "$mid")).toHaveLength(1)
   })
 
+  test("collectContributions merges custom string aliases", () => {
+    const c = collectContributions([copilotCliPlugin])
+    expect(c.stringAliases.map((a) => a.name)).toContain("ModelId")
+  })
+
   test("collectContributions merges parameters (last-wins)", () => {
     const a = { name: "a", contribute: () => ({ parameters: { "hoist-shared.min-keys": 5 } }) }
     const b = { name: "b", contribute: () => ({ parameters: { "hoist-shared.min-keys": 9 } }) }
@@ -70,9 +75,10 @@ describe("vscode plugin", () => {
 
 describe("resolvePluginNames", () => {
   test("resolves known names in order", () => {
-    const r = resolvePluginNames(["vscode"])
-    expect(r).toHaveLength(1)
+    const r = resolvePluginNames(["vscode", "copilot-cli"])
+    expect(r).toHaveLength(2)
     expect(r[0]).toBe(vscodePlugin)
+    expect(r[1]).toBe(copilotCliPlugin)
   })
 
   test("empty list → empty result", () => {

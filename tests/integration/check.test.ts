@@ -21,7 +21,7 @@ import { findManifest, loadManifest, resolveTargetPaths } from "@/manifest"
 // Targets known to fail strict check today.
 //   codex: no stateful adapter (codex-rollout is a stub), so any natural
 //     drift between sessions trips the strict check.
-const KNOWN_DRIFT = new Set(["codex"])
+const KNOWN_DRIFT = new Set<string>([])
 
 const manifestPath = findManifest(resolve(__dirname, "..", ".."))
 

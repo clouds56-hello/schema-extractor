@@ -6,6 +6,20 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Copilot CLI example target for `~/.copilot/session-state/*/events.jsonl`, generating `examples/copilot-cli.d.ts` via the manifest.
+- Plugin-provided string aliases through `PluginContribution.stringAliases`; aliases participate in primitive string rendering, record key detection, and emitted alias declarations.
+- Bundled `copilotCliPlugin` with a conservative `ModelId` alias and a keyed `modelMetrics` record hint so Copilot CLI model metrics emit as `Record<ModelId, ...>`.
+- Golden regression covering plugin string aliases, `modelMetrics` record collapse, and quoted literal fields like `"system-reminder"`.
+
+### Changed
+- Record hints now match the current field/path segment instead of broad substring matches across the full generated name chain, avoiding accidental recordification from tag/literal-derived path text.
+- `recordHints` can now be either legacy string hints (`Record<string, V>`) or keyed hints (`{ field, key }`) for plugin-controlled record key aliases.
+
+### Fixed
+- Copilot CLI `modelMetrics` no longer emits one property per observed model ID such as `"glm-4.7"`; it emits `Record<ModelId, ...>`.
+- Prevented invalid record key aliases such as `Record<system-reminder, ...>` from broad record-hint matching.
+
 ## [0.1.4] - 2026-05-13
 
 ### Added

@@ -1,4 +1,7 @@
 import type { Schema } from "@/ir/types"
+import type { AliasDef } from "@/ir/alias"
+
+export type RecordHint = string | { field: string; key: string }
 
 /**
  * A NamePlugin contributes domain-specific knowledge to the extractor:
@@ -18,7 +21,8 @@ import type { Schema } from "@/ir/types"
 export interface PluginContribution {
   multiTagHints?: readonly string[]
   dedupHints?: ReadonlyArray<readonly [string, string]>
-  recordHints?: readonly string[]
+  recordHints?: readonly RecordHint[]
+  stringAliases?: readonly AliasDef[]
   /** Partial parameter overrides; keys validated against KNOWN_PARAMETER_KEYS. */
   parameters?: Readonly<Record<string, number>>
 }

@@ -1,5 +1,7 @@
 // String alias detection: pick the most specific format that ALL observed strings match.
 
+import { runtime } from "@/runtime"
+
 export interface AliasDef {
   name: string
   predicate: (s: string) => boolean
@@ -43,10 +45,14 @@ export const ALIASES: AliasDef[] = [
   },
 ]
 
+export function activeAliases(): readonly AliasDef[] {
+  return runtime.stringAliases ?? ALIASES
+}
+
 export function buildAliasMaps(s: string): { only: Map<string, boolean>; ev: Map<string, boolean> } {
   const only = new Map<string, boolean>()
   const ev = new Map<string, boolean>()
-  for (const a of ALIASES) {
+  for (const a of activeAliases()) {
     only.set(a.name, a.predicate(s))
     if (a.evidence) ev.set(a.name, a.evidence(s))
   }
@@ -55,7 +61,7 @@ export function buildAliasMaps(s: string): { only: Map<string, boolean>; ev: Map
 
 /** Pick the most specific alias from ALIASES that all keys satisfy (with evidence if required). */
 export function detectKeyAlias(keys: string[]): string {
-  for (const def of ALIASES) {
+  for (const def of activeAliases()) {
     if (!keys.every((k) => def.predicate(k))) continue
     if (def.evidence && !keys.some((k) => def.evidence!(k))) continue
     return def.name

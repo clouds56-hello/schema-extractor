@@ -24,8 +24,8 @@ export { checkRecords, formatReport, mergeReport } from "./check/index"
 export type { ExtractorOptions } from "./config"
 export type { Schema } from "./ir/types"
 export { parseDts } from "./parse-dts/index"
-export type { NamePlugin, PluginContribution, PluginCtx, PluginMatch } from "./plugins/index"
-export { DEFAULT_PLUGINS, vscodePlugin } from "./plugins/index"
+export type { NamePlugin, PluginContribution, PluginCtx, PluginMatch, RecordHint } from "./plugins/index"
+export { copilotCliPlugin, DEFAULT_PLUGINS, vscodePlugin } from "./plugins/index"
 
 /** Run the full pipeline on an in-memory IR and emit a TypeScript document. */
 function emitDocument(root: Schema, opts: ReturnType<typeof resolveOptions>): string {
@@ -58,13 +58,16 @@ function emitDocument(root: Schema, opts: ReturnType<typeof resolveOptions>): st
 export function extractSchema(values: Iterable<unknown>, opts: ExtractorOptions = {}): string {
   const resolved = resolveOptions(opts)
   const prevTag = runtime.userTagKey
+  const prevAliases = runtime.stringAliases
   runtime.userTagKey = resolved.userTagKey
+  runtime.stringAliases = resolved.stringAliases
   try {
     let schema: Schema = NEVER
     for (const v of values) schema = merge(schema, fromValue(v))
     return emitDocument(schema, resolved)
   } finally {
     runtime.userTagKey = prevTag
+    runtime.stringAliases = prevAliases
   }
 }
 
@@ -79,13 +82,16 @@ export async function extractSchemaFromStream(
 ): Promise<string> {
   const resolved = resolveOptions(opts)
   const prevTag = runtime.userTagKey
+  const prevAliases = runtime.stringAliases
   runtime.userTagKey = resolved.userTagKey
+  runtime.stringAliases = resolved.stringAliases
   try {
     const records = await parseJsonl(stream, label)
     const schema = runAdapters(records, resolved.adapters)
     return emitDocument(schema, resolved)
   } finally {
     runtime.userTagKey = prevTag
+    runtime.stringAliases = prevAliases
   }
 }
 
@@ -101,7 +107,9 @@ export async function extractSchemaFromFiles(
 ): Promise<string> {
   const resolved = resolveOptions(opts)
   const prevTag = runtime.userTagKey
+  const prevAliases = runtime.stringAliases
   runtime.userTagKey = resolved.userTagKey
+  runtime.stringAliases = resolved.stringAliases
   try {
     const files = expandGlobs(patterns)
     if (files.length === 0) throw new Error("no input files matched")
@@ -115,6 +123,7 @@ export async function extractSchemaFromFiles(
     return emitDocument(schema, resolved)
   } finally {
     runtime.userTagKey = prevTag
+    runtime.stringAliases = prevAliases
   }
 }
 
@@ -186,5 +195,11 @@ export function simplifyDts(source: string, opts: ExtractorOptions = {}): string
   const merged: ExtractorOptions = { ...opts, rootName: rootDecl.name }
   const resolved = resolveOptions(merged)
   void order
-  return emitDocument(rootDecl.schema, resolved)
+  const prevAliases = runtime.stringAliases
+  runtime.stringAliases = resolved.stringAliases
+  try {
+    return emitDocument(rootDecl.schema, resolved)
+  } finally {
+    runtime.stringAliases = prevAliases
+  }
 }

@@ -61,8 +61,8 @@
             "multiTagHints": { "type": "array", "items": { "type": "string" } },
             "plugins": {
               "type": "array",
-              "description": "Names of bundled NamePlugins to enable for this target. Omitting this field means NO plugins are loaded — each target must opt in explicitly. Use [\"vscode\"] for the bundled VSCode plugin.",
-              "items": { "type": "string", "enum": ["vscode"] }
+              "description": "Names of bundled NamePlugins to enable for this target. Omitting this field means NO plugins are loaded — each target must opt in explicitly. Use [\"vscode\"] for the bundled VSCode plugin or [\"copilot-cli\"] for Copilot CLI events.",
+              "items": { "type": "string", "enum": ["vscode", "copilot-cli"] }
             },
             "parameters": {
               "type": "object",

@@ -1,7 +1,7 @@
 import { policyAccepts } from "@/policy/predicates"
 import { STREAM_MERGE_POLICY } from "@/policy/presets"
 import { runtime } from "@/runtime"
-import { ALIASES, detectKeyAlias, isPathLike } from "./alias"
+import { activeAliases, detectKeyAlias, isPathLike } from "./alias"
 import { pickTagKey } from "./tags"
 import type { Schema } from "./types"
 import { NEVER } from "./types"
@@ -39,7 +39,7 @@ export function merge(a: Schema, b: Schema): Schema {
       out.seenString = true
       const only = new Map<string, boolean>()
       const ev = new Map<string, boolean>()
-      for (const def of ALIASES) {
+      for (const def of activeAliases()) {
         const aa = a.seenString ? a.aliasOnly?.get(def.name) !== false : true
         const bb = b.seenString ? b.aliasOnly?.get(def.name) !== false : true
         only.set(def.name, aa && bb)

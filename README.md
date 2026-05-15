@@ -73,6 +73,7 @@ import {
   extractSchemaFromStream, // ReadableStream<Uint8Array> -> Promise<string>
   checkJsonlAgainstDts,    // patterns + .d.ts path -> Promise<CheckReport>
   checkRecords,            // values: unknown[] + Schema -> CheckReport
+  copilotCliPlugin,
   formatReport,
   mergeReport,             // aggregate per-file reports
   parseDts,                // .d.ts source -> { decls, order }
@@ -82,6 +83,7 @@ import {
   type Schema,
   type Adapter,
   DEFAULT_ADAPTERS,
+  vscodePlugin,
   vscodePatchAdapter,
   codexRolloutAdapter,
 } from "schema-extractor"

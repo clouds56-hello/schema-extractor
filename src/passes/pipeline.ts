@@ -1,7 +1,7 @@
 import type { Schema } from "@/ir/types"
 import { TAG_CANDIDATES } from "@/ir/types"
 import type { Parameters } from "@/parameters"
-import type { NamePlugin } from "@/plugins/index"
+import type { NamePlugin, RecordHint } from "@/plugins/index"
 import { runtime } from "@/runtime"
 import { applyAutoRecursive } from "./auto-recursive"
 import { applyFieldTagConsolidation } from "./field-tag"
@@ -18,7 +18,7 @@ import { applyTagHints } from "./tag-hints"
 
 export interface PipelineOptions {
   rootName: string
-  recordHints: readonly string[]
+  recordHints: readonly RecordHint[]
   dedupHints: ReadonlyArray<readonly [string, string]>
   multiTagHints: readonly string[]
   plugins: readonly NamePlugin[]

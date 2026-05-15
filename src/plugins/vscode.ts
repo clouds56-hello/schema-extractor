@@ -58,7 +58,7 @@ export const vscodePlugin: NamePlugin = {
       ],
       // `UserSelectedTools` is a VSCode-side map; collapse to Record<string, V>
       // rather than open-ended object enumeration.
-      recordHints: ["UserSelectedTools"],
+      recordHints: ["UserSelectedTools", "modelMetrics"],
     }
   },
 

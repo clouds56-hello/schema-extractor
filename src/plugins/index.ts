@@ -1,9 +1,10 @@
 import { mergeParameters } from "../parameters"
-import type { NamePlugin, PluginContribution } from "./types"
+import { copilotCliPlugin } from "./copilot-cli"
+import type { NamePlugin, PluginContribution, RecordHint } from "./types"
 import { vscodePlugin } from "./vscode"
 
-export type { NamePlugin, PluginContribution, PluginCtx, PluginMatch } from "./types"
-export { vscodePlugin }
+export type { NamePlugin, PluginContribution, PluginCtx, PluginMatch, RecordHint } from "./types"
+export { copilotCliPlugin, vscodePlugin }
 
 /** Plugin chain, in registration / match-priority order. */
 export const DEFAULT_PLUGINS: readonly NamePlugin[] = [vscodePlugin]
@@ -15,6 +16,7 @@ export const DEFAULT_PLUGINS: readonly NamePlugin[] = [vscodePlugin]
  * extension; for now only registered names are accepted.
  */
 export const BUILTIN_PLUGINS: Readonly<Record<string, NamePlugin>> = {
+  [copilotCliPlugin.name]: copilotCliPlugin,
   [vscodePlugin.name]: vscodePlugin,
 }
 
@@ -43,15 +45,17 @@ export function resolvePluginNames(names: readonly string[]): readonly NamePlugi
  */
 export function collectContributions(plugins: readonly NamePlugin[]): Required<PluginContribution> {
   const tags = new Set<string>()
-  const records = new Set<string>()
+  const records = new Map<string, RecordHint>()
   const dedup = new Map<string, readonly [string, string]>()
+  const aliases = new Map<string, NonNullable<PluginContribution["stringAliases"]>[number]>()
   let params: Record<string, number> = {}
   for (const p of plugins) {
     const c = p.contribute?.()
     if (!c) continue
     for (const t of c.multiTagHints ?? []) tags.add(t)
-    for (const r of c.recordHints ?? []) records.add(r)
+    for (const r of c.recordHints ?? []) records.set(typeof r === "string" ? r : `${r.field}\x00${r.key}`, r)
     for (const pair of c.dedupHints ?? []) dedup.set(`${pair[0]}\x00${pair[1]}`, pair)
+    for (const a of c.stringAliases ?? []) aliases.set(a.name, a)
     if (c.parameters) {
       try {
         // mergeParameters validates known-key + non-negative-integer.
@@ -63,8 +67,9 @@ export function collectContributions(plugins: readonly NamePlugin[]): Required<P
   }
   return {
     multiTagHints: [...tags],
-    recordHints: [...records],
+    recordHints: [...records.values()],
     dedupHints: [...dedup.values()],
+    stringAliases: [...aliases.values()],
     parameters: params,
   }
 }

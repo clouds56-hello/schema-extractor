@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { extractSchemaFromFiles } from "@/index"
 import { expandGlobs } from "@/input/glob"
+import { copilotCliPlugin } from "@/plugins/index"
 
 const cases = [
   {
@@ -14,6 +15,12 @@ const cases = [
     glob: "~/.config/Code/User/workspaceStorage/*/chatSessions/*.jsonl",
     options: { rootName: "CopilotChat" },
     expected: "examples/copilot-chat.d.ts",
+  },
+  {
+    name: "copilot-cli",
+    glob: "~/.copilot/session-state/*/events.jsonl",
+    options: { rootName: "CopilotCli", plugins: [copilotCliPlugin] },
+    expected: "examples/copilot-cli.d.ts",
   },
 ] as const
 

@@ -1,4 +1,4 @@
-import { ALIASES } from "@/ir/alias"
+import { activeAliases } from "@/ir/alias"
 import { pickTagLiteral } from "@/ir/tags"
 import type { Schema } from "@/ir/types"
 import {
@@ -73,7 +73,7 @@ export function render(s: Schema, ctx: EmitCtx, p: PathCtx): string {
         let stringRepr = "string"
         if (onlyStringNonNull && s.seenString) {
           let picked: string | null = null
-          for (const def of ALIASES) {
+          for (const def of activeAliases()) {
             if (s.aliasOnly?.get(def.name) !== true) continue
             if (def.evidence && s.aliasEvidence?.get(def.name) !== true) continue
             picked = def.name

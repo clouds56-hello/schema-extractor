@@ -12,6 +12,12 @@
       "input": "~/.config/Code/User/workspaceStorage/*/chatSessions/*.jsonl",
       "output": "examples/copilot-chat.d.ts",
       "options": { "rootName": "CopilotChat", "plugins": ["vscode"] }
+    },
+    {
+      "name": "copilot-cli",
+      "input": "~/.copilot/session-state/*/events.jsonl",
+      "output": "examples/copilot-cli.d.ts",
+      "options": { "rootName": "CopilotCli", "plugins": ["copilot-cli"] }
     }
   ]
 }
